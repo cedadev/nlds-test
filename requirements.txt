@@ -1,0 +1,3 @@
+git+https://github.com/cedadev/nlds.git@development#egg=nlds
+git+https://github.com/cedadev/nlds-client.git@development#egg=nlds-client
+pytest>=7.2.1
