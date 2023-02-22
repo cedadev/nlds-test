@@ -3,9 +3,16 @@ import pytest
 import subprocess
 import os
 import pathlib
+import random, string
 
 from nlds_processors.catalog.catalog_worker import CatalogConsumer
 from nlds_processors.monitor.monitor_worker import MonitorConsumer
+
+
+def generate_random(size):
+    R = ''.join(random.choice(string.ascii_lowercase) for i in range(0, size))
+    return R
+    
 
 class test_data:
     def __init__(self, nr=0, ur=0):
@@ -36,13 +43,13 @@ class test_data:
         for i in range(1, self.nr+1):
             path = top_path.joinpath(f"data/readable_file_{i}.txt")
             with path.open("w") as fh:
-                fh.write("!")
+                fh.write(generate_random(128*1024))
                 # write 128K of random into the file
         # create the unreadable files (user does not have permission to read)
         for i in range(1, self.ur+1):
             path = top_path.joinpath(f"data/unreadable_file_{i}.txt")
             with path.open("w") as fh:
-                fh.write("!")
+                fh.write(generate_random(128*1024))
                 # write 128K of random into the file
             # change the file permissions
             path.chmod(0o000)
