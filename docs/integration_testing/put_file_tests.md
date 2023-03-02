@@ -45,28 +45,28 @@ The other command line options and arguments are:
 
 ## Tests
 
-| *Label* | *JobLabel* | *HoldingID* | *Tag* | *File* | Outcome | Reason |
-|---------|------------|-------------|-------|--------|---------|--------|
-|   -     |    -       |     -       |  -    | **readable** | **COMPLETE** | file is added to new holding with label derived from transaction id |
-|   -     |    -       |     -       |  -    | **unreadable** | **FAILED** | file not readable by user |
-|   -     |    -       |     -       |  -    | **not** | **FAILED** | file not found |
-| **NOT exists** | -   |     -       |  -    | **readable** | **COMPLETE** | file is added to new holding with label |
-| **exists**|   -      |     -       |  -    | **readable** | **COMPLETE** | file is added to existing holding with label |
-| **exists**|   -      |     -       |  -    | **exists** | **FAILED** | filepath already exists in holding |
-|  -      | **NOT exists** |   -     |  -    | **readable** | **COMPLETE** | file is added to new holding with label derived from transaction id |
-|  -      |   **exists**   |   -     |  -    | **readable** | **COMPLETE** | it doesn't matter that the job label already exists|
-|  -      |    -       | **NOT exists** | -   | **readable** | **FAILED** | holding with id not found |
-|  -      |    -       | **exists**     | -   | **readable** | **COMPLETE** | file added to holding |
-|  -      |    -       | **exists**     | -   | **exists** | **FAILED** | filepath already exists in holding |
-| **NOT exists** | -   | **NOT exists** | -   | **readable** | **FAILED** | holding with id not found |
-| **NOT exists** | -   | **exists**     | -   | **readable** | **COMPLETE** | holding id has precendence |
-| **exists**     | -   | **NOT exists** | -   | **readable** | **FAILED** | holding id has precedence and no fallback to label if holding not found from id |
-| **exists**     | -   | **exists**     | -   | **readable** | **COMPLETE** | holding id has precendence |
-|   -     |    -       |     -       | **NOT exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added to holding |
-|   -     |    -       |     -       | **exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added to holding |
-| **NOT exists** | -   |  -       | **NOT exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added |
-| **NOT exists** | -   |  -       | **exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added |
-| **exists** | -   |  -       | **NOT exists** | **readable** | **COMPLETE** | file is added to existing holding and tag is added |
-| **exists** | -   |  -       | **exists** | **readable** | **COMPLETE_WITH_WARNINGS** | file is added to existing holding, tag is not added as already exists, warning given |
+| *ID*  | *Label* | *JobLabel* | *HoldingID* | *Tag* | *File* | Outcome | Reason |
+|-------|---------|------------|-------------|-------|--------|---------|--------|
+| put_1 |   -     |    -       |     -       |  -    | **readable** | **COMPLETE** | file is added to new holding with label derived from transaction id |
+| put_2 |   -     |    -       |     -       |  -    | **unreadable** | **FAILED** | file not readable by user |
+| put_3 |   -     |    -       |     -       |  -    | **not** | **FAILED** | file not found |
+| put_4 | **NOT exists** | -   |     -       |  -    | **readable** | **COMPLETE** | file is added to new holding with label |
+| put_5 | **exists**|   -      |     -       |  -    | **readable** | **COMPLETE** | file is added to existing holding with label |
+| put_6 | **exists**|   -      |     -       |  -    | **exists** | **FAILED** | filepath already exists in holding |
+| put_7 |  -       | **NOT exists** |   -     |  -    | **readable** | **COMPLETE** | file is added to new holding with label derived from transaction id |
+| put_8 |  -      |   **exists**   |   -     |  -    | **readable** | **COMPLETE** | it doesn't matter that the job label already exists|
+| put_9 |  -      |    -       | **NOT exists** | -   | **readable** | **FAILED** | holding with id not found |
+| put_10|  -      |    -       | **exists**     | -   | **readable** | **COMPLETE** | file added to holding |
+| put_11|  -      |    -       | **exists**     | -   | **exists** | **FAILED** | filepath already exists in holding |
+| put_12| **NOT exists** | -   | **NOT exists** | -   | **readable** | **FAILED** | holding with id not found |
+| put_13| **NOT exists** | -   | **exists**     | -   | **readable** | **COMPLETE** | holding id has precendence |
+| put_14| **exists**     | -   | **NOT exists** | -   | **readable** | **FAILED** | holding id has precedence and no fallback to label if holding not found from id |
+| put_15| **exists**     | -   | **exists**     | -   | **readable** | **COMPLETE** | holding id has precendence |
+| put_16|   -     |    -       |     -       | **NOT exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added to holding |
+| put_17|   -     |    -       |     -       | **exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added to holding |
+| put_18| **NOT exists** | -   |  -       | **NOT exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added |
+| put_19| **NOT exists** | -   |  -       | **exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added |
+| put_20| **exists** | -   |  -       | **NOT exists** | **readable** | **COMPLETE** | file is added to existing holding and tag is added |
+| put_21| **exists** | -   |  -       | **exists** | **readable** | **COMPLETE_WITH_WARNINGS** | file is added to existing holding, tag is not added as already exists, warning given |
 
  [return](./integration_testing.md)

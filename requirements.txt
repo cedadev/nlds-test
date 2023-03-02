@@ -1,3 +1,8 @@
-git+https://github.com/cedadev/nlds.git@development#egg=nlds
-git+https://github.com/cedadev/nlds-client.git@development#egg=nlds-client
+# remote version for deployment integration testing
+# git+https://github.com/cedadev/nlds.git@development#egg=nlds
+# git+https://github.com/cedadev/nlds-client.git@development#egg=nlds-client
+
+# local copy for development and testing
+file:/Users/neil.massey/Coding/nlds#egg=nlds
+file:/Users/neil.massey/Coding/nlds-client#egg=nlds-client
 pytest>=7.2.1
