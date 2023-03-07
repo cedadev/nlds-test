@@ -50,30 +50,30 @@ The other command line options and arguments are:
 Here, just the additional functionality of `putlist` over `put` is tested.
 The other variables are adequately tested by [Put command tests](./put_file_tests.md)
 
-| *Label*    | *HoldingID* |   *File-1*     |   *File-2*     | Outcome      | Reason |
-|------------|-------------|----------------|----------------|--------------|--------|
-|     -      |     -       |  **readable**  |  **readable**  | **COMPLETE** | File-1 is added, File-2 is added to new holding |
-|     -      |     -       |  **readable**  | **unreadable** | **COMPLETE_WITH_ERRORS**  | File-1 is added, File-2 is not |
-|     -      |     -       |  **readable**  |    **not**     | **COMPLETE_WITH_ERRORS**  | File-1 is added, File-2 is not  |
-|     -      |     -       | **unreadable** |  **readable**  | **COMPLETE_WITH_ERRORS**  | File-1 is not added, File-2 is added |
-|     -      |     -       | **unreadable** | **unreadable** | **FAILED**   | File-1 is not added, File-2 is not added |
-|     -      |     -       | **unreadable** |    **not**     | **FAILED**   | File-1 is not added, File-2 is not added |
-|     -      |     -       |    **not**     |  **readable**  | **COMPLETE_WITH_ERRORS** | File-1 is not added, File-2 is added |
-|     -      |     -       |    **not**     | **unreadable** | **FAILED**   | File-1 is not added, File-2 is not added |
-|     -      |     -       |    **not**     |    **not**     | **FAILED**   | File-1 is not added, File-2 is not added |
-| **exists** |     -       |  **readable**  |  **readable**  | **COMPLETE** | File-1 is added, File-2 is added to holding with label|
-| **exists** |     -       | **unreadable** |  **readable**  | **COMPLETE_WITH_ERRORS** | File-1 is not added, File-2 is added |
-| **exists** |     -       |    **not**     |  **readable**  | **COMPLETE_WITH_ERRORS** | File-1 is not added, File-2 is added |
-| **exists** |     -       |   **exists**   |  **readable**  | **COMPLETE_WITH_ERRORS** | File-1 is not added, File-2 is added |
-| **exists** |     -       |   **exists**   | **unreadable** | **FAILED**   | File-1 is not added, File-2 is not added |
-| **exists** |     -       |   **exists**   |    **not**     | **FAILED**   | File-1 is not added, File-2 is not added |
-| **exists** |     -       |   **exists**   |   **exists**   | **FAILED**   | File-1 is not added, File-2 is not added |
-|     -      | **exists**  |  **readable**  |  **readable**  | **COMPLETE** | File-1 is added, File-2 is added to holding with label|
-|     -      | **exists**  |  **readable**  | **unreadable** | **COMPLETE_WITH_ERRORS** | File-1 is added, File-2 is not added |
-|     -      | **exists**  |  **readable**  |    **not**     | **COMPLETE_WITH_ERRORS** | File-1 is added, File-2 is not added |
-|     -      | **exists**  |  **readable**  |   **exists**   | **COMPLETE_WITH_ERRORS** | File-1 is added, File-2 is not added |
-|     -      | **exists**  | **unreadable** |   **exists**   | **FAILED**   | File-1 is not added, File-2 is not added |
-|     -      | **exists**  |    **not**     |   **exists**   | **FAILED**   | File-1 is not added, File-2 is not added |
-|     -      | **exists**  |   **exists**   |   **exists**   | **FAILED**   | File-1 is not added, File-2 is not added |
+| *ID*  | *Label*    | *HoldingID* |   *File-1*     |   *File-2*     | Outcome      | Reason |
+|-------|------------|-------------|----------------|----------------|--------------|--------|
+| putlist_1 |     -      |     -       |  **readable**  |  **readable**  | **COMPLETE** | File-1 is added, File-2 is added to new holding |
+| putlist_2 |     -      |     -       |  **readable**  | **unreadable** | **COMPLETE_WITH_ERRORS**  | File-1 is added, File-2 is not |
+| putlist_3 |     -      |     -       |  **readable**  |    **not**     | **COMPLETE_WITH_ERRORS**  | File-1 is added, File-2 is not  |
+| putlist_4 |     -      |     -       | **unreadable** |  **readable**  | **COMPLETE_WITH_ERRORS**  | File-1 is not added, File-2 is added |
+| putlist_5 |     -      |     -       | **unreadable** | **unreadable** | **FAILED**   | File-1 is not added, File-2 is not added |
+| putlist_6 |     -      |     -       | **unreadable** |    **not**     | **FAILED**   | File-1 is not added, File-2 is not added |
+| putlist_7 |     -      |     -       |    **not**     |  **readable**  | **COMPLETE_WITH_ERRORS** | File-1 is not added, File-2 is added |
+| putlist_8 |     -      |     -       |    **not**     | **unreadable** | **FAILED**   | File-1 is not added, File-2 is not added |
+| putlist_9 |     -      |     -       |    **not**     |    **not**     | **FAILED**   | File-1 is not added, File-2 is not added |
+| putlist_10| **exists** |     -       |  **readable**  |  **readable**  | **COMPLETE** | File-1 is added, File-2 is added to holding with label|
+| putlist_11| **exists** |     -       | **unreadable** |  **readable**  | **COMPLETE_WITH_ERRORS** | File-1 is not added, File-2 is added |
+| putlist_12| **exists** |     -       |    **not**     |  **readable**  | **COMPLETE_WITH_ERRORS** | File-1 is not added, File-2 is added |
+| putlist_13| **exists** |     -       |   **exists**   |  **readable**  | **COMPLETE_WITH_ERRORS** | File-1 is not added, File-2 is added |
+| putlist_14| **exists** |     -       |   **exists**   | **unreadable** | **FAILED**   | File-1 is not added, File-2 is not added |
+| putlist_15| **exists** |     -       |   **exists**   |    **not**     | **FAILED**   | File-1 is not added, File-2 is not added |
+| putlist_16| **exists** |     -       |   **exists**   |   **exists**   | **FAILED**   | File-1 is not added, File-2 is not added |
+| putlist_17|     -      | **exists**  |  **readable**  |  **readable**  | **COMPLETE** | File-1 is added, File-2 is added to holding with label|
+| putlist_18|     -      | **exists**  |  **readable**  | **unreadable** | **COMPLETE_WITH_ERRORS** | File-1 is added, File-2 is not added |
+| putlist_19|     -      | **exists**  |  **readable**  |    **not**     | **COMPLETE_WITH_ERRORS** | File-1 is added, File-2 is not added |
+| putlist_20|     -      | **exists**  |  **readable**  |   **exists**   | **COMPLETE_WITH_ERRORS** | File-1 is added, File-2 is not added |
+| putlist_21|     -      | **exists**  | **unreadable** |   **exists**   | **FAILED**   | File-1 is not added, File-2 is not added |
+| putlist_22|     -      | **exists**  |    **not**     |   **exists**   | **FAILED**   | File-1 is not added, File-2 is not added |
+| putlist_23|     -      | **exists**  |   **exists**   |   **exists**   | **FAILED**   | File-1 is not added, File-2 is not added |
 
 [return](./integration_testing.md)

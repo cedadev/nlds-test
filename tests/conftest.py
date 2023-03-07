@@ -41,16 +41,24 @@ def wait_completed(user=None, group=None, transaction_id=None, response=None):
 
     finished = False
     state = "INITIALISING"
-    while not finished:
+    # there is a problem that this function may never complete if the state does
+    # not reach any of the states below
+    # keep a counter (in seconds) of the number of loops so we can exit
+    n_loops = 0
+    MAX_LOOPS = 20
+    while not finished and n_loops < MAX_LOOPS:
         # give it some room to breathe
         time.sleep(1)
+        n_loops+=1
         stat_response = nlds_client.monitor_transactions(
             user=user, group=group, transaction_id=transaction_id
         )
         # stat_response is a dictionary of {details:, data:,}  
         # The transaction is [data][records][0]
-        transaction = stat_response["data"]["records"][0]
-        state, _ = nlds_client.get_transaction_state(transaction)
+        data = stat_response["data"]["records"]
+        if len(data) > 0:
+            transaction = stat_response["data"]["records"][0]
+            state, _ = nlds_client.get_transaction_state(transaction)
 
         # completion states are COMPLETE, COMPLETE_WITH_ERRORS, 
         # COMPLETE_WITH_WARNINGS, FAILED
@@ -70,6 +78,19 @@ def count_files(response):
             for f in t['filelist']:
                 n_files+=1
     return n_files
+
+def tag_in_holding(response, tag_test):
+    result = False
+    for h in response['data']['holdings']:
+        tags = h['tags']
+        t = all(tags.get(key, None) == val for key,val in tag_test.items())
+        if result == False:
+            result = t
+        else:
+            result &= t
+
+    return result
+
 
 def generate_random(size):
     R = ''.join(random.choice(string.ascii_lowercase) for i in range(0, size))
@@ -116,9 +137,10 @@ class test_data:
             path.chmod(0o000)
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True, scope="function")
 def data_fixture():
     # This looks complicated but actually works and gets around scoping issues
+    print("CREATING DATA")
     data = test_data()
     def setup(nr, ur):
         data.nr = nr
@@ -128,11 +150,12 @@ def data_fixture():
     data.del_data()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope="function")
 def catalog_fixture():
     # run the catalog executable
     # this requires NLDS to be pip install and the `catalog_q` command to be
     # available
+    print("LAUNCHING CATALOG")
     p = subprocess.Popen(["catalog_q"])
     yield
     p.terminate()
@@ -146,12 +169,12 @@ def catalog_fixture():
         os.unlink(db_name)
 
 
-
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope="function")
 def monitor_fixture():
     # run the monitor executable
     # this requires NLDS to be pip install and the `monitor_q` command to be
     # available
+    print("LAUNCHING MONITOR")
     p = subprocess.Popen(["monitor_q"])
     yield
     p.terminate()
@@ -165,8 +188,9 @@ def monitor_fixture():
         os.unlink(db_name)
 
 
-@pytest.fixture(autouse=True)
-def index_fixture():
+@pytest.fixture(autouse=True, scope="class")
+def index_fixture(worker_fixture):
+    print("LAUNCHING INDEXER")
     # run the indexer executable
     # this requires NLDS to be pip install and the `index_q` command to be
     # available in the path
@@ -175,8 +199,9 @@ def index_fixture():
     p.terminate()
 
 
-@pytest.fixture(autouse=True)
-def worker_fixture():
+@pytest.fixture(autouse=True, scope="class")
+def worker_fixture(logger_fixture):
+    print("LAUNCHING WORKER")
     # run the worker executable
     # this requires NLDS to be pip install and the `nlds_q` command to be
     # available in the path
@@ -185,8 +210,9 @@ def worker_fixture():
     p.terminate()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope="session")
 def server_fixture():
+    print("LAUNCHING SERVER")
     # run the HTTP rest server executable
     # this requires uvicorn to be installed and the `uvicorn` command to be
     # available on the path
@@ -197,8 +223,9 @@ def server_fixture():
     p.terminate()
 
 
-@pytest.fixture(autouse=True)
-def put_transfer_fixture():
+@pytest.fixture(autouse=True, scope="class")
+def put_transfer_fixture(worker_fixture):
+    print("LAUNCHING PUT TRANSFER")
     # run the put_transfer executable
     # this requires NLDS to be pip install and the `put_transfer_q` command to 
     # be available in the path
@@ -206,8 +233,10 @@ def put_transfer_fixture():
     yield
     p.terminate()
 
-@pytest.fixture(autouse=True)
-def get_transfer_fixture():
+
+@pytest.fixture(autouse=True, scope="class")
+def get_transfer_fixture(worker_fixture):
+    print("LAUNCHING GET TRANSFER")
     # run the get_transfer executable
     # this requires NLDS to be pip install and the `get_transfer_q` command to 
     # be available in the path
@@ -216,15 +245,20 @@ def get_transfer_fixture():
     p.terminate()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope="class")
 def logger_fixture():
+    print("LAUNCHING LOGGER")
     # run the logging executable
     # this requires NLDS to be pip install and the `logging_q` command to 
     # be available in the path
     p = subprocess.Popen(["logging_q"])
     yield
+    # give the logger time to clear up
+    time.sleep(1)
     p.terminate()
 
-@pytest.fixture(autouse=True)
+
+@pytest.fixture(autouse=True, scope="function")
 def pause_fixture():
+    print("SLEEPING")
     time.sleep(1)

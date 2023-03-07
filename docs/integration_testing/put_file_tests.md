@@ -62,11 +62,9 @@ The other command line options and arguments are:
 | put_13| **NOT exists** | -   | **exists**     | -   | **readable** | **COMPLETE** | holding id has precendence |
 | put_14| **exists**     | -   | **NOT exists** | -   | **readable** | **FAILED** | holding id has precedence and no fallback to label if holding not found from id |
 | put_15| **exists**     | -   | **exists**     | -   | **readable** | **COMPLETE** | holding id has precendence |
-| put_16|   -     |    -       |     -       | **NOT exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added to holding |
-| put_17|   -     |    -       |     -       | **exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added to holding |
-| put_18| **NOT exists** | -   |  -       | **NOT exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added |
-| put_19| **NOT exists** | -   |  -       | **exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added |
-| put_20| **exists** | -   |  -       | **NOT exists** | **readable** | **COMPLETE** | file is added to existing holding and tag is added |
-| put_21| **exists** | -   |  -       | **exists** | **readable** | **COMPLETE_WITH_WARNINGS** | file is added to existing holding, tag is not added as already exists, warning given |
+| put_16| **NOT exists** | -   |  -       | **NOT exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added |
+| put_17| **NOT exists** | -   |  -       | **exists** | **readable** | **COMPLETE** | file is added to new holding and tag is added |
+| put_18| **exists** | -   |  -       | **NOT exists** | **readable** | **COMPLETE** | file is added to existing holding and tag is added |
+| put_19| **exists** | -   |  -       | **exists** | **readable** | **COMPLETE_WITH_WARNINGS** | file is added to existing holding, tag is not added as already exists, warning given |
 
  [return](./integration_testing.md)
