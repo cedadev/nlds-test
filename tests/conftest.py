@@ -125,19 +125,19 @@ class test_data:
         for i in range(1, self.nr+1):
             path = get_readable_path(i)
             with path.open("w") as fh:
-                fh.write(generate_random(128*1024))
                 # write 128K of random into the file
+                fh.write(generate_random(128*1024))
         # create the unreadable files (user does not have permission to read)
         for i in range(1, self.ur+1):
             path = get_unreadable_path(i)
             with path.open("w") as fh:
-                fh.write(generate_random(128*1024))
                 # write 128K of random into the file
+                fh.write(generate_random(128*1024))
             # change the file permissions
             path.chmod(0o000)
 
 
-@pytest.fixture(autouse=True, scope="function")
+@pytest.fixture(scope="function")
 def data_fixture():
     # This looks complicated but actually works and gets around scoping issues
     print("CREATING DATA")
@@ -150,8 +150,8 @@ def data_fixture():
     data.del_data()
 
 
-@pytest.fixture(autouse=True, scope="function")
-def catalog_fixture():
+@pytest.fixture(scope="function")
+def catalog_fixture_put():
     # run the catalog executable
     # this requires NLDS to be pip install and the `catalog_q` command to be
     # available
@@ -169,8 +169,8 @@ def catalog_fixture():
         os.unlink(db_name)
 
 
-@pytest.fixture(autouse=True, scope="function")
-def monitor_fixture():
+@pytest.fixture(scope="function")
+def monitor_fixture_put():
     # run the monitor executable
     # this requires NLDS to be pip install and the `monitor_q` command to be
     # available
