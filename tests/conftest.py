@@ -2,7 +2,7 @@ import os
 import pytest
 import subprocess
 import os
-import pathlib
+import pathlib, shutil
 import random, string
 import time
 
@@ -22,6 +22,20 @@ def get_unreadable_path(n):
     top_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
     path = pathlib.Path(top_path).joinpath(f"data/unreadable_file_{n}.txt")
     return path
+
+
+def get_data_dir():
+    # generate the test data using Python.  The shell script is redundant.
+    top_path = pathlib.Path(__file__).parent.parent.resolve()
+    datadir = top_path.joinpath("data").resolve()
+    return datadir
+
+
+def get_target_dir():
+    # generate the test data using Python.  The shell script is redundant.
+    top_path = pathlib.Path(__file__).parent.parent.resolve()
+    targetdir = top_path.joinpath("target").resolve()
+    return targetdir
 
 
 def wait_completed(user=None, group=None, transaction_id=None, response=None):
@@ -79,6 +93,7 @@ def count_files(response):
                 n_files+=1
     return n_files
 
+
 def tag_in_holding(response, tag_test):
     result = False
     for h in response['data']['holdings']:
@@ -97,6 +112,27 @@ def generate_random(size):
     return R
     
 
+def delete_catalog():
+    # called at the end of catalog_fixture_put and catalog_fixture_get
+    consumer = CatalogConsumer()
+    # delete SQLLite database if it exists to start next time with clean db
+    db_engine = consumer.load_config_value(consumer._DB_ENGINE)
+    db_options = consumer.load_config_value(consumer._DB_OPTIONS)
+    db_name = "." + db_options['db_name']
+    if (db_engine == "sqlite") and (os.path.exists(db_name)):
+        os.unlink(db_name)
+
+
+def delete_monitor():
+    # delete SQLLite database if it exists to start next time with clean db
+    consumer = MonitorConsumer()
+    db_engine = consumer.load_config_value(consumer._DB_ENGINE)
+    db_options = consumer.load_config_value(consumer._DB_OPTIONS)
+    db_name = "." + db_options['db_name']
+    if (db_engine == "sqlite") and (os.path.exists(db_name)):
+        os.unlink(db_name)
+
+
 class test_data:
     def __init__(self, nr=0, ur=0):
         self.nr = nr
@@ -114,13 +150,25 @@ class test_data:
             path.chmod(0o777)
             path.unlink()
 
+        # remove the data directory and target directory (if they exist)
+        datadir = get_data_dir()
+        if datadir.exists():
+            datadir.rmdir()
+
+        target = get_target_dir()
+        if target.exists():
+            shutil.rmtree(target)
+        
+
     def make_data(self):
-        # generate the test data using Python.  The shell script is redundant.
-        top_path = pathlib.Path(__file__).parent.parent.resolve()
-        # check the data directory exists
-        datadir = top_path.joinpath("data")
+        # check the data directoryand target  exists
+        datadir = get_data_dir()
         if not datadir.exists():
             datadir.mkdir()
+        target = get_target_dir()
+        if not target.exists():
+            target.mkdir()
+
         # create the readable files (user can read)
         for i in range(1, self.nr+1):
             path = get_readable_path(i)
@@ -136,9 +184,25 @@ class test_data:
             # change the file permissions
             path.chmod(0o000)
 
+    def upload_data(self, sr=1, er=-1, label=None, tag={}):
+        # upload data to the object storage so that it is available to the
+        # get tests
+        # the data should already have been created by a call to data.make_data()
+        filelist = []
+        # build a list of the files
+        if er == -1:
+            er = self.nr
+        for i in range(sr, er+1):
+            path = get_readable_path(i)
+            filelist.append(path)
+        # upload the filepath
+        response = nlds_client.put_filelist(filelist, label=label, tag=tag)
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
+
 
 @pytest.fixture(scope="function")
-def data_fixture():
+def data_fixture_put():
     # This looks complicated but actually works and gets around scoping issues
     print("CREATING DATA")
     data = test_data()
@@ -151,7 +215,7 @@ def data_fixture():
 
 
 @pytest.fixture(scope="function")
-def catalog_fixture_put():
+def catalog_fixture_put(worker_fixture):
     # run the catalog executable
     # this requires NLDS to be pip install and the `catalog_q` command to be
     # available
@@ -159,18 +223,12 @@ def catalog_fixture_put():
     p = subprocess.Popen(["catalog_q"])
     yield
     p.terminate()
-
-    consumer = CatalogConsumer()
-    # delete SQLLite database if it exists to start next time with clean db
-    db_engine = consumer.load_config_value(consumer._DB_ENGINE)
-    db_options = consumer.load_config_value(consumer._DB_OPTIONS)
-    db_name = "." + db_options['db_name']
-    if (db_engine == "sqlite") and (os.path.exists(db_name)):
-        os.unlink(db_name)
+    # cleanup
+    delete_catalog()
 
 
 @pytest.fixture(scope="function")
-def monitor_fixture_put():
+def monitor_fixture_put(worker_fixture):
     # run the monitor executable
     # this requires NLDS to be pip install and the `monitor_q` command to be
     # available
@@ -178,14 +236,8 @@ def monitor_fixture_put():
     p = subprocess.Popen(["monitor_q"])
     yield
     p.terminate()
-
-    # delete SQLLite database if it exists to start next time with clean db
-    consumer = MonitorConsumer()
-    db_engine = consumer.load_config_value(consumer._DB_ENGINE)
-    db_options = consumer.load_config_value(consumer._DB_OPTIONS)
-    db_name = "." + db_options['db_name']
-    if (db_engine == "sqlite") and (os.path.exists(db_name)):
-        os.unlink(db_name)
+    # cleanup
+    delete_monitor()
 
 
 @pytest.fixture(autouse=True, scope="class")
@@ -200,7 +252,7 @@ def index_fixture(worker_fixture):
 
 
 @pytest.fixture(autouse=True, scope="class")
-def worker_fixture(logger_fixture):
+def worker_fixture(server_fixture, logger_fixture):
     print("LAUNCHING WORKER")
     # run the worker executable
     # this requires NLDS to be pip install and the `nlds_q` command to be
@@ -262,3 +314,47 @@ def logger_fixture():
 def pause_fixture():
     print("SLEEPING")
     time.sleep(1)
+
+# These fixtures (data_fixture_get, catalog_fixture_get and monitor_fixture_get)
+# look very similar to their _put counterparts.  However, they do have different
+# scopes - they are created at the class level, so that the data is available
+# in the NLDS catalog and Object Storage for each get test
+
+@pytest.fixture(scope="class")
+def data_fixture_get(catalog_fixture_get, monitor_fixture_get):
+    # Simpler version of data_fixture_put, which just makes some test data
+    # and uploads it to the NLDS
+    print("CREATING DATA")
+    data = test_data()
+    data.nr = 15
+    data.ur = 0
+    data.make_data()
+    data.upload_data(1, 5, label="test_holding_1")
+    data.upload_data(6, 10, label="test_holding_2", tag={"filelist":"6 to 10"})
+    data.upload_data(11, 15, label="test_holding_3", tag={"filelist":"11 to 15"})
+    yield
+    data.del_data()
+
+
+@pytest.fixture(scope="class")
+def catalog_fixture_get(worker_fixture):
+    # run the catalog executable
+    # this requires NLDS to be pip install and the `catalog_q` command to be
+    # available
+    print("LAUNCHING CATALOG")
+    p = subprocess.Popen(["catalog_q"])
+    yield
+    p.terminate()
+    delete_catalog()
+
+
+@pytest.fixture(scope="class")
+def monitor_fixture_get(worker_fixture):
+    # run the monitor executable
+    # this requires NLDS to be pip install and the `monitor_q` command to be
+    # available
+    print("LAUNCHING MONITOR")
+    p = subprocess.Popen(["monitor_q"])
+    yield
+    p.terminate()
+    delete_monitor()

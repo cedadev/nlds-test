@@ -15,3 +15,6 @@ pip install -r requirements.txt
 
 Each command in the NLDS client is tested using the integration tests detailed
 in the [integration test tables](./docs/integration_testing/integration_testing.md)
+
+The PyTest fixtures handle setting up and running the NLDS microservices.
+However, you do need a valid configuration file in ``/etc/nlds/server_config``
