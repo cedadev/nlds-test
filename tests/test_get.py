@@ -1,10 +1,10 @@
 from nlds_client import nlds_client
-import time
 import pytest
 from nlds_client.clientlib import transactions as nlds_client
 from tests.conftest import get_readable_path, get_unreadable_path, \
-                           wait_completed, count_files, tag_in_holding,\
-                           get_target_dir
+                           wait_completed, get_target_dir, \
+                           get_unwriteable_target_dir, \
+                           get_nonexistant_target_dir
 
 @pytest.mark.usefixtures("data_fixture_get", "catalog_fixture_get",
     "monitor_fixture_get", "index_fixture", "worker_fixture", "server_fixture", 
@@ -250,3 +250,28 @@ class TestGet:
         )
         state = wait_completed(response=response)
         assert(state == "FAILED")
+
+    def test_get_21(self, monitor_fixture_get, catalog_fixture_get, 
+                   data_fixture_get):
+        """Get a file that exists in a holding, but write to an existing but
+        unreadable / unwriteable directory"""
+        filepath = get_readable_path(1).as_posix()
+        target = get_unwriteable_target_dir().as_posix()
+        try:
+            response = nlds_client.get_filelist([filepath], label="test_holding_1",
+                                                 target=target)
+            state = wait_completed(response=response)
+        except PermissionError:
+            state = "FAILED"
+        assert(state == "FAILED")
+
+    def test_get_22(self, monitor_fixture_get, catalog_fixture_get, 
+                   data_fixture_get):
+        """Get a file that exists in a holding, but write to a target that
+        doesn't exist - the directory will be created."""
+        filepath = get_readable_path(1).as_posix()
+        target = get_nonexistant_target_dir().as_posix()
+        response = nlds_client.get_filelist([filepath], label="test_holding_1",
+                                             target=target)
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")

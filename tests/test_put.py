@@ -53,6 +53,8 @@ class TestPut:
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         response = nlds_client.put_filelist([filepath_1], label="label_1")
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
         response = nlds_client.put_filelist([filepath_2], label="label_1")
         state = wait_completed(response=response)
         assert(state == "COMPLETE")
@@ -69,6 +71,8 @@ class TestPut:
         data = data_fixture_put(1, 0)
         filepath_1 = get_readable_path(1)
         response = nlds_client.put_filelist([filepath_1], label="label_1")
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
         response = nlds_client.put_filelist([filepath_1], label="label_1")
         state = wait_completed(response=response)
         assert(state == "FAILED")
@@ -89,6 +93,8 @@ class TestPut:
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         response = nlds_client.put_filelist([filepath_1], job_label="job_1")
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
         response = nlds_client.put_filelist([filepath_2], job_label="job_1")
         state = wait_completed(response=response)
         assert(state == "COMPLETE")
@@ -112,10 +118,11 @@ class TestPut:
         """Test putting a readable file to NLDS with a holding_id that already 
         exists"""
         data = data_fixture_put(2, 0)
-        time.sleep(1)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         response = nlds_client.put_filelist([filepath_1])
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
         # holding id will be 1 as we start with a new database each time
         response = nlds_client.put_filelist([filepath_2], holding_id=1)
         state = wait_completed(response=response)
@@ -133,7 +140,8 @@ class TestPut:
         data = data_fixture_put(1, 0)
         filepath_1 = get_readable_path(1)
         response = nlds_client.put_filelist([filepath_1])
-        time.sleep(0.5)
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
         # holding id will be 1 as we start with a new database each time
         response = nlds_client.put_filelist([filepath_1], holding_id=1)
         state = wait_completed(response=response)
@@ -145,7 +153,8 @@ class TestPut:
         data = data_fixture_put(1, 0)
         filepath_1 = get_readable_path(1)
         response = nlds_client.put_filelist([filepath_1])
-        time.sleep(0.5)
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
         # holding id will be 1 as we start with a new database each time
         response = nlds_client.put_filelist(
             [filepath_1], holding_id=1, label="holding_1"
@@ -155,33 +164,29 @@ class TestPut:
 
     def test_put_13(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to NLDS with a holding_id that does 
-        exist and the label does not exist - the holding id should have 
-        precedence"""
+        exist and the label does not exist - the holding id and label must match"""
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         response = nlds_client.put_filelist([filepath_1]) # this creates the holding
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
         # holding id will be 1 as we start with a new database each time
         response = nlds_client.put_filelist(
             [filepath_2], holding_id=1, label="holding_1"
         )
         state = wait_completed(response=response)
-        assert(state == "COMPLETE")
-        # get the files in holding_id=1 - there should be two
-        user = response["user"]
-        group = response["group"]
-        response = nlds_client.find_file(user, group, holding_id=1)
-        n_files = count_files(response)
-        assert(n_files==2)
+        assert(state == "FAILED")
 
     def test_put_14(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to NLDS with a holding_id that does 
-        not exist and the label does exist - the holding id should have 
-        precedence and the test should fail"""
+        not exist and the label does exist - the holding id and label must match"""
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         response = nlds_client.put_filelist([filepath_1], label="holding_1")
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
         # existing holding id will be 1 as we start with a new database each time
         # so use holding_id=2 to not exist
         response = nlds_client.put_filelist(
@@ -192,15 +197,19 @@ class TestPut:
 
     def test_put_15(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to NLDS with a holding_id that exists 
-        and the label exists - the holding id should have precedence and the 
-        test should complete with two holdings created, and the third file 
-        added to the second holding"""
+        in one holding and the label exists in another holding.  This will fail
+        as the holding id must match the label of the holding the file is being 
+        added to."""
         data = data_fixture_put(3, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         filepath_3 = get_readable_path(3)
         response = nlds_client.put_filelist([filepath_1], label="holding_1")
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
         response = nlds_client.put_filelist([filepath_2], label="holding_2")
+        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
         # existing holding id will be 1 as we start with a new database each 
         # time, this holding will have label holding_1, so use holding_2 for the
         # test (which will have holding id=2)
@@ -208,13 +217,13 @@ class TestPut:
             [filepath_3], holding_id=1, label="holding_2"
         )
         state = wait_completed(response=response)
-        assert(state == "COMPLETE")
-        # get the files in holding_id=1 - there should be two
+        assert(state == "FAILED")
+        # get the files in holding_id=1 - there should be only one
         user = response["user"]
         group = response["group"]
         response = nlds_client.find_file(user, group, holding_id=1)
         n_files = count_files(response)
-        assert(n_files==2)
+        assert(n_files==1)
 
     def test_put_16(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to the NLDS with a tag that does not
@@ -275,11 +284,12 @@ class TestPut:
         # get the tag from each of the holdings to check they exist
         user = response["user"]
         group = response["group"]
+        # list_holding returns straight away as it is a RPC call - no need
+        # to wait_completed
         response = nlds_client.list_holding(user, group, tag=tag)
         # there should be one holding
         n_holds = len(response['data']['holdings'])
         assert(n_holds == 1)
-        # list_holding returns straight away as it is a RPC call
         tag_test = tag_in_holding(response, tag)
         assert(tag_test)
 
