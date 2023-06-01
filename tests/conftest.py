@@ -10,32 +10,64 @@ from nlds_processors.catalog.catalog_worker import CatalogConsumer
 from nlds_processors.monitor.monitor_worker import MonitorConsumer
 from nlds_client.clientlib import transactions as nlds_client
 
+def get_top_path():
+    return pathlib.Path(__file__).parent.parent.resolve()
+
 def get_readable_path(n):
-    """Get the path of a readable file"""
-    top_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
-    path = pathlib.Path(top_path).joinpath(f"data/readable_file_{n}.txt")
+    """Get the path of a readable file."""
+    path = get_top_path().joinpath(f"data/readable_file_{n}.txt").resolve()
     return path
 
 
 def get_unreadable_path(n):
-    """Get the path of an unreadable file"""
-    top_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
-    path = pathlib.Path(top_path).joinpath(f"data/unreadable_file_{n}.txt")
+    """Get the path of an unreadable file."""
+    path = get_top_path().joinpath(f"data/unreadable_file_{n}.txt").resolve()
+    return path
+
+
+def get_regex_exists():
+    """Get a regular expression that exists."""
+    path = get_top_path().joinpath(f"data/.*").resolve()
+    return path
+
+
+def get_regex_notexists():
+    """Get a regular expression that exists."""
+    path = get_top_path().joinpath(f"data/ark*").resolve()
     return path
 
 
 def get_data_dir():
-    # generate the test data using Python.  The shell script is redundant.
-    top_path = pathlib.Path(__file__).parent.parent.resolve()
-    datadir = top_path.joinpath("data").resolve()
+    """Get the path of the directory to generate data in."""
+    datadir = get_top_path().joinpath("data").resolve()
     return datadir
 
 
 def get_target_dir():
-    # generate the test data using Python.  The shell script is redundant.
-    top_path = pathlib.Path(__file__).parent.parent.resolve()
-    targetdir = top_path.joinpath("target").resolve()
+    """Get the target directory path"""
+    targetdir = get_top_path().joinpath("target").resolve()
     return targetdir
+
+
+def get_unwriteable_target_dir():
+    """Get the path of an unreadable directory"""
+    target_uw = pathlib.Path("/usr/local").joinpath("target_uw").resolve()
+    return target_uw
+    
+
+def get_nonexistant_target_dir():
+    """Get the path of a directory that does not exist"""
+    target_fake = get_top_path().joinpath("fake_dir").resolve()
+    return target_fake
+
+
+def count_retrieved_files():
+    target_w = pathlib.Path(str(get_target_dir()) + str(get_data_dir())).resolve()
+    c = 0
+    for x in target_w.iterdir():
+        print("FILE:", x)
+        c += 1
+    return c
 
 
 def wait_completed(user=None, group=None, transaction_id=None, response=None):
@@ -155,19 +187,12 @@ class test_data:
         if datadir.exists():
             datadir.rmdir()
 
-        target = get_target_dir()
-        if target.exists():
-            shutil.rmtree(target)
-        
 
     def make_data(self):
         # check the data directoryand target  exists
         datadir = get_data_dir()
         if not datadir.exists():
             datadir.mkdir()
-        target = get_target_dir()
-        if not target.exists():
-            target.mkdir()
 
         # create the readable files (user can read)
         for i in range(1, self.nr+1):
@@ -202,6 +227,27 @@ class test_data:
 
 
 @pytest.fixture(scope="function")
+def make_target_dirs():
+    """Make and clear targets each time a test runs"""
+    target = get_target_dir()
+    if not target.exists():
+        target.mkdir()
+
+    yield
+
+    target = get_target_dir()
+    if target.exists():
+        shutil.rmtree(target)
+    target_uw = get_unwriteable_target_dir()
+    if target_uw.exists():
+        target_uw.chmod(0o777)
+        shutil.rmtree(target_uw)
+    target_fake = get_nonexistant_target_dir()
+    if target_fake.exists():
+        shutil.rmtree(target_fake)
+
+
+@pytest.fixture(scope="function")
 def data_fixture_put():
     # This looks complicated but actually works and gets around scoping issues
     print("CREATING DATA")
@@ -214,6 +260,14 @@ def data_fixture_put():
     data.del_data()
 
 
+def terminate(p):
+    # terminate process p
+    p.terminate()
+    # wait for termination
+    while p.poll() == None:
+        time.sleep(0.1)
+        continue
+
 @pytest.fixture(scope="function")
 def catalog_fixture_put(worker_fixture):
     # run the catalog executable
@@ -222,12 +276,12 @@ def catalog_fixture_put(worker_fixture):
     print("LAUNCHING CATALOG")
     p = subprocess.Popen(["catalog_q"])
     yield
-    p.terminate()
+    terminate(p)
     # cleanup
     delete_catalog()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="class")
 def monitor_fixture_put(worker_fixture):
     # run the monitor executable
     # this requires NLDS to be pip install and the `monitor_q` command to be
@@ -235,7 +289,7 @@ def monitor_fixture_put(worker_fixture):
     print("LAUNCHING MONITOR")
     p = subprocess.Popen(["monitor_q"])
     yield
-    p.terminate()
+    terminate(p)
     # cleanup
     delete_monitor()
 
@@ -248,7 +302,7 @@ def index_fixture(worker_fixture):
     # available in the path
     p = subprocess.Popen(["index_q"])
     yield
-    p.terminate()
+    terminate(p)
 
 
 @pytest.fixture(autouse=True, scope="class")
@@ -259,7 +313,7 @@ def worker_fixture(server_fixture, logger_fixture):
     # available in the path
     p = subprocess.Popen(["nlds_q"])
     yield
-    p.terminate()
+    terminate(p)
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -272,7 +326,7 @@ def server_fixture():
         "uvicorn", "nlds.main:nlds", "--reload","--log-level=trace", "--port=8000"
     ])
     yield
-    p.terminate()
+    terminate(p)
 
 
 @pytest.fixture(autouse=True, scope="class")
@@ -283,7 +337,7 @@ def put_transfer_fixture(worker_fixture):
     # be available in the path
     p = subprocess.Popen(["transfer_put_q"])
     yield
-    p.terminate()
+    terminate(p)
 
 
 @pytest.fixture(autouse=True, scope="class")
@@ -294,7 +348,7 @@ def get_transfer_fixture(worker_fixture):
     # be available in the path
     p = subprocess.Popen(["transfer_get_q"])
     yield
-    p.terminate()
+    terminate(p)
 
 
 @pytest.fixture(autouse=True, scope="class")
@@ -305,14 +359,14 @@ def logger_fixture():
     # be available in the path
     p = subprocess.Popen(["logging_q"])
     yield
-    # give the logger time to clear up
-    time.sleep(1)
-    p.terminate()
+    terminate(p)
 
 
 @pytest.fixture(autouse=True, scope="function")
 def pause_fixture():
     print("SLEEPING")
+    # increased sleeping time due to catalog_q and monitor_q not always 
+    # completing
     time.sleep(1)
 
 # These fixtures (data_fixture_get, catalog_fixture_get and monitor_fixture_get)
@@ -330,8 +384,8 @@ def data_fixture_get(catalog_fixture_get, monitor_fixture_get):
     data.ur = 0
     data.make_data()
     data.upload_data(1, 5, label="test_holding_1")
-    data.upload_data(6, 10, label="test_holding_2", tag={"filelist":"6 to 10"})
-    data.upload_data(11, 15, label="test_holding_3", tag={"filelist":"11 to 15"})
+    data.upload_data(6, 10, label="test_holding_2", tag={"filelist":"6 to 10", "filetype":"txt"})
+    data.upload_data(11, 15, label="test_holding_3", tag={"filelist":"11 to 15", "filetype":"txt"})
     yield
     data.del_data()
 
@@ -344,7 +398,7 @@ def catalog_fixture_get(worker_fixture):
     print("LAUNCHING CATALOG")
     p = subprocess.Popen(["catalog_q"])
     yield
-    p.terminate()
+    terminate(p)
     delete_catalog()
 
 
@@ -356,5 +410,5 @@ def monitor_fixture_get(worker_fixture):
     print("LAUNCHING MONITOR")
     p = subprocess.Popen(["monitor_q"])
     yield
-    p.terminate()
+    terminate(p)
     delete_monitor()
