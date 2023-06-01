@@ -2,6 +2,7 @@ from nlds_client import nlds_client
 import time
 import pytest
 from nlds_client.clientlib import transactions as nlds_client
+from nlds_client.clientlib import exceptions as nlds_error
 from tests.conftest import get_readable_path, get_unreadable_path, \
                            wait_completed, count_files, tag_in_holding
 
@@ -113,6 +114,16 @@ class TestPut:
         response = nlds_client.put_filelist([filepath_1], holding_id=1)
         state = wait_completed(response=response)
         assert(state == "FAILED")
+
+    def test_put_9a(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
+        """Variation on test_put_9.  Test putting a readable file to NLDS with 
+        a holding_id that is not legal - as it is a string."""
+        data = data_fixture_put(1, 0)
+        filepath_1 = get_readable_path(1)
+        # this should throw an RequestError exception as the HTTP_API is
+        # expecting an integer holding_id
+        with pytest.raises(nlds_error.RequestError) as re:
+            response = nlds_client.put_filelist([filepath_1], holding_id="abcdefg")
 
     def test_put_10(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to NLDS with a holding_id that already 
