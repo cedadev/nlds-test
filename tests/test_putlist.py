@@ -4,6 +4,8 @@ from nlds_client.clientlib import transactions as nlds_client
 from tests.conftest import get_readable_path, get_unreadable_path, \
                            wait_completed
 
+from .test_put import put_filelist
+
 @pytest.mark.usefixtures("data_fixture_put", "catalog_fixture_put", 
     "monitor_fixture_put", "index_fixture", "worker_fixture", "server_fixture", 
     "put_transfer_fixture", "get_transfer_fixture", "logger_fixture", 
@@ -16,9 +18,8 @@ class TestPutList():
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
-        assert(state == "COMPLETE")        
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
+        assert(state == "COMPLETE")
 
     def test_putlist_1a(self, data_fixture_put, 
                        catalog_fixture_put, monitor_fixture_put):
@@ -27,8 +28,7 @@ class TestPutList():
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(1)
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
         assert(state == "COMPLETE") 
 
     def test_putlist_2(self, data_fixture_put, 
@@ -38,8 +38,7 @@ class TestPutList():
         data = data_fixture_put(1, 1)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_unreadable_path(1)
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
         assert(state == "COMPLETE_WITH_ERRORS")  
 
     def test_putlist_3(self, data_fixture_put, 
@@ -49,8 +48,7 @@ class TestPutList():
         data =  data_fixture_put(1, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = "fake_file"
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
         assert(state == "COMPLETE_WITH_ERRORS")
 
     def test_putlist_4(self, data_fixture_put, 
@@ -60,8 +58,7 @@ class TestPutList():
         data = data_fixture_put(1, 1)
         filepath_1 = get_unreadable_path(1)
         filepath_2 = get_readable_path(1)
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
         assert(state == "COMPLETE_WITH_ERRORS")
 
     def test_putlist_5(self, data_fixture_put, 
@@ -71,8 +68,7 @@ class TestPutList():
         data = data_fixture_put(0, 2)
         filepath_1 = get_unreadable_path(1)
         filepath_2 = get_unreadable_path(2)
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
         assert(state == "FAILED")
 
     def test_putlist_5a(self, data_fixture_put, 
@@ -82,8 +78,7 @@ class TestPutList():
         data = data_fixture_put(0, 2)
         filepath_1 = get_unreadable_path(1)
         filepath_2 = get_unreadable_path(1)
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
         assert(state == "FAILED")
 
     def test_putlist_6(self, data_fixture_put, 
@@ -93,8 +88,7 @@ class TestPutList():
         data = data_fixture_put(0, 1)
         filepath_1 = get_unreadable_path(1)
         filepath_2 = "fake_file"
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
         assert(state == "FAILED")
 
     def test_putlist_7(self, data_fixture_put, 
@@ -106,8 +100,7 @@ class TestPutList():
         data = data_fixture_put(1, 1)
         filepath_1 = get_unreadable_path(1)
         filepath_2 = get_readable_path(1)
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
         assert(state == "COMPLETE_WITH_ERRORS")
 
     def test_putlist_8(self, data_fixture_put, 
@@ -118,35 +111,34 @@ class TestPutList():
         data = data_fixture_put(0, 1)
         filepath_1 = "fake_file"
         filepath_2 = get_unreadable_path(1)
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
         assert(state == "FAILED")
 
     def test_putlist_9(self, data_fixture_put, 
                        catalog_fixture_put, monitor_fixture_put):
         """Test putting two files to NLDS, both don't exist."""
         # create 1 readable and 1 unreadable file
+        data = data_fixture_put(0, 0)
         filepath_1 = "fake_file"
         filepath_2 = "fake_fake_file"
-        response = nlds_client.put_filelist([filepath_1, filepath_2])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1, filepath_2])
         assert(state == "FAILED")
 
     def test_putlist_10(self, data_fixture_put, 
                         catalog_fixture_put, monitor_fixture_put):
         """Test put two files to the NLDS, to a holding that already exists."""
-        # create 1 readable and 1 unreadable file
+        # create 3 readable files
         data = data_fixture_put(3, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         filepath_3 = get_readable_path(3)
-        response = nlds_client.put_filelist([filepath_1], label="holding")
-        state = wait_completed(response=response)
-        assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], label="holding"
+        state, _ = put_filelist(
+            data, [filepath_1], label="holding"
         )
-        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], label="holding"
+        )
         assert(state == "COMPLETE")
 
     def test_putlist_11(self, data_fixture_put, 
@@ -159,13 +151,13 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = get_unreadable_path(2)
         filepath_3 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1], label="holding")
-        state = wait_completed(response=response)
-        assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], label="holding"
+        state, _ = put_filelist(
+            data, [filepath_1], label="holding"
         )
-        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], label="holding"
+        )
         assert(state == "COMPLETE_WITH_ERRORS")
 
     def test_putlist_12(self, data_fixture_put, 
@@ -178,13 +170,13 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = "fake_file"
         filepath_3 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1], label="holding")
-        state = wait_completed(response=response)
-        assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], label="holding"
+        state, _ = put_filelist(
+            data, [filepath_1], label="holding"
         )
-        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], label="holding"
+        )
         assert(state == "COMPLETE_WITH_ERRORS")
 
     def test_putlist_13(self, data_fixture_put, 
@@ -197,13 +189,13 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = filepath_1
         filepath_3 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1], label="holding")
-        state = wait_completed(response=response)
-        assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], label="holding"
+        state, _ = put_filelist(
+            data, [filepath_1], label="holding"
         )
-        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], label="holding"
+        )
         assert(state == "COMPLETE_WITH_ERRORS")
 
     def test_putlist_14(self, data_fixture_put, 
@@ -216,13 +208,13 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = filepath_1
         filepath_3 = get_unreadable_path(3)
-        response = nlds_client.put_filelist([filepath_1], label="holding")
-        state = wait_completed(response=response)
-        assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], label="holding"
+        state, _ = put_filelist(
+            data, [filepath_1], label="holding"
         )
-        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], label="holding"
+        )
         assert(state == "FAILED")
 
     def test_putlist_15(self, data_fixture_put, 
@@ -235,13 +227,13 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = filepath_1
         filepath_3 = "fake_file"
-        response = nlds_client.put_filelist([filepath_1], label="holding")
-        state = wait_completed(response=response)
-        assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], label="holding"
+        state, _ = put_filelist(
+            data, [filepath_1], label="holding"
         )
-        state = wait_completed(response=response)
+        assert(state == "COMPLETE")
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], label="holding"
+        )
         assert(state == "FAILED")
 
     def test_putlist_16(self, data_fixture_put, 
@@ -253,15 +245,13 @@ class TestPutList():
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
-        response = nlds_client.put_filelist(
-            [filepath_1, filepath_2], label="holding"
+        state, _ = put_filelist(
+            data, [filepath_1, filepath_2], label="holding"
         )
-        state = wait_completed(response=response)
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_1, filepath_2], label="holding"
+        state, _ = put_filelist(
+            data, [filepath_1, filepath_2], label="holding"
         )
-        state = wait_completed(response=response)
         assert(state == "FAILED")
 
     # tests 17->23 are duplicates of 10->16 but with the label="holding"
@@ -274,13 +264,11 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         filepath_3 = get_readable_path(3)
-        response = nlds_client.put_filelist([filepath_1])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1])
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], holding_id=1
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], holding_id=1
         )
-        state = wait_completed(response=response)
         assert(state == "COMPLETE")
 
     def test_putlist_18(self, data_fixture_put):
@@ -292,13 +280,11 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = get_unreadable_path(2)
         filepath_3 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1])
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], holding_id=1
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], holding_id=1
         )
-        state = wait_completed(response=response)
         assert(state == "COMPLETE_WITH_ERRORS")
 
     def test_putlist_19(self, data_fixture_put, 
@@ -311,13 +297,11 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = "fake_file"
         filepath_3 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1])
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], holding_id=1
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], holding_id=1
         )
-        state = wait_completed(response=response)
         assert(state == "COMPLETE_WITH_ERRORS")
 
     def test_putlist_20(self, data_fixture_put, 
@@ -330,13 +314,11 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = filepath_1
         filepath_3 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1])
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], holding_id=1
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], holding_id=1
         )
-        state = wait_completed(response=response)
         assert(state == "COMPLETE_WITH_ERRORS")
 
     def test_putlist_21(self, data_fixture_put, 
@@ -349,13 +331,11 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = filepath_1
         filepath_3 = get_unreadable_path(3)
-        response = nlds_client.put_filelist([filepath_1])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1])
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], holding_id=1
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], holding_id=1
         )
-        state = wait_completed(response=response)
         assert(state == "FAILED")
 
     def test_putlist_22(self, data_fixture_put, 
@@ -368,13 +348,11 @@ class TestPutList():
         filepath_1 = get_readable_path(1)
         filepath_2 = filepath_1
         filepath_3 = "fake_file"
-        response = nlds_client.put_filelist([filepath_1])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1])
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2, filepath_3], holding_id=1
+        state, _ = put_filelist(
+            data, [filepath_2, filepath_3], holding_id=1
         )
-        state = wait_completed(response=response)
         assert(state == "FAILED")
 
     def test_putlist_23(self, data_fixture_put, 
@@ -386,13 +364,11 @@ class TestPutList():
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
-        response = nlds_client.put_filelist(
-            [filepath_1, filepath_2]
+        state, _ = put_filelist(
+            data, [filepath_1, filepath_2]
         )
-        state = wait_completed(response=response)
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_1, filepath_2], holding_id=1
+        state, _ = put_filelist(
+            data, [filepath_1, filepath_2], holding_id=1
         )
-        state = wait_completed(response=response)
         assert(state == "FAILED")

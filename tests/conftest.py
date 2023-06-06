@@ -4,7 +4,8 @@ import subprocess
 import os
 import pathlib, shutil
 import random, string
-import time
+import time, json
+import minio
 
 from nlds_processors.catalog.catalog_worker import CatalogConsumer
 from nlds_processors.monitor.monitor_worker import MonitorConsumer
@@ -51,7 +52,7 @@ def get_target_dir():
 
 def get_unwriteable_target_dir():
     """Get the path of an unreadable directory"""
-    target_uw = pathlib.Path("/usr/local").joinpath("target_uw").resolve()
+    target_uw = get_top_path().joinpath("target_uw").resolve()
     return target_uw
     
 
@@ -169,8 +170,33 @@ class test_data:
     def __init__(self, nr=0, ur=0):
         self.nr = nr
         self.ur = ur
+        self.buckets = []
+
+
+    def get_tenancy(self):
+        # get the tenancy from the server config
+        path = os.path.expanduser("/etc/nlds/server_config")
+        fh = open(path, 'r')
+        json_config = json.load(fh)
+        fh.close()
+        tenancy = json_config["transfer_put_q"]["tenancy"]
+        return tenancy
+
+
+    def get_object_store_keys(self):
+        # get the accessKey and secretKey for the object storage from the
+        # NLDS config
+        path = os.path.expanduser("~/.nlds-config")
+        fh = open(path, 'r')
+        json_config = json.load(fh)
+        fh.close()
+        access_key = json_config["object_storage"]["access_key"]
+        secret_key = json_config["object_storage"]["secret_key"]
+        return access_key, secret_key
+
 
     def del_data(self):
+        # Delete the (local) data created for the test
         # delete the readable files (user can read)
         for i in range(1, self.nr+1):
             path = get_readable_path(i)
@@ -188,11 +214,38 @@ class test_data:
             datadir.rmdir()
 
 
+    def del_buckets(self):
+        # Remove the buckets that were uploaded to the object store
+        tenancy = self.get_tenancy()
+        accessKey, secretKey = self.get_object_store_keys()
+        client = minio.Minio(
+            tenancy, 
+            access_key=accessKey,
+            secret_key=secretKey,
+            secure=False
+        )
+        for b in self.buckets:
+            # to remove a bucket:
+            # 0. check the bucket exists
+            # 1. get a list of objects in the bucket
+            # 2. remove the objects from the bucket
+            # 3. remove the bucket
+            if client.bucket_exists(b):
+                del_objs = client.list_objects(b, recursive=True)
+                for d in del_objs:
+                    client.remove_object(b, d.object_name)
+
+                client.remove_bucket(b)
+
+
     def make_data(self):
         # check the data directoryand target  exists
         datadir = get_data_dir()
         if not datadir.exists():
             datadir.mkdir()
+            # have to allow write by groups for test_get_1a - restoring to
+            # original location
+            datadir.chmod(0o773)
 
         # create the readable files (user can read)
         for i in range(1, self.nr+1):
@@ -200,6 +253,7 @@ class test_data:
             with path.open("w") as fh:
                 # write 128K of random into the file
                 fh.write(generate_random(128*1024))
+
         # create the unreadable files (user does not have permission to read)
         for i in range(1, self.ur+1):
             path = get_unreadable_path(i)
@@ -208,6 +262,7 @@ class test_data:
                 fh.write(generate_random(128*1024))
             # change the file permissions
             path.chmod(0o000)
+
 
     def upload_data(self, sr=1, er=-1, label=None, tag={}):
         # upload data to the object storage so that it is available to the
@@ -223,6 +278,11 @@ class test_data:
         # upload the filepath
         response = nlds_client.put_filelist(filelist, label=label, tag=tag)
         state = wait_completed(response=response)
+        # get the bucket name and add it to the list so we can delete it at
+        # the end
+        transaction_id = response['transaction_id']
+        bucket_name = f"nlds.{transaction_id}"
+        self.buckets.append(bucket_name)
         assert(state == "COMPLETE")
 
 
@@ -232,16 +292,27 @@ def make_target_dirs():
     target = get_target_dir()
     if not target.exists():
         target.mkdir()
+        # change to be writeable by everyone
+        target.chmod(0o777)
+
+
+    target_uw = get_unwriteable_target_dir()
+    if not target_uw.exists():
+        target_uw.mkdir()
+        # change so readable but not writeable by the group and all
+        target_uw.chmod(0o555)
 
     yield
 
     target = get_target_dir()
     if target.exists():
         shutil.rmtree(target)
+
     target_uw = get_unwriteable_target_dir()
     if target_uw.exists():
         target_uw.chmod(0o777)
         shutil.rmtree(target_uw)
+
     target_fake = get_nonexistant_target_dir()
     if target_fake.exists():
         shutil.rmtree(target_fake)
@@ -256,8 +327,10 @@ def data_fixture_put():
         data.nr = nr
         data.ur = ur
         data.make_data()
+        return data
     yield setup
     data.del_data()
+    data.del_buckets()
 
 
 def terminate(p):
@@ -388,6 +461,7 @@ def data_fixture_get(catalog_fixture_get, monitor_fixture_get):
     data.upload_data(11, 15, label="test_holding_3", tag={"filelist":"11 to 15", "filetype":"txt"})
     yield
     data.del_data()
+    data.del_buckets()
 
 
 @pytest.fixture(scope="class")

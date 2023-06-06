@@ -6,6 +6,18 @@ from nlds_client.clientlib import exceptions as nlds_error
 from tests.conftest import get_readable_path, get_unreadable_path, \
                            wait_completed, count_files, tag_in_holding
 
+
+def put_filelist(data, filepath, **kwargs):
+    """Put a filelist and record the bucket it went into so we can delete it
+    at the end"""
+    response = nlds_client.put_filelist(filepath, **kwargs)
+    state = wait_completed(response=response)
+    transaction_id = response['transaction_id']
+    bucket_name = f"nlds.{transaction_id}"
+    data.buckets.append(bucket_name)
+
+    return state, response
+
 @pytest.mark.usefixtures("data_fixture_put", "catalog_fixture_put", 
     "monitor_fixture_put", "index_fixture", "worker_fixture", "server_fixture", 
     "put_transfer_fixture", "get_transfer_fixture", "logger_fixture", 
@@ -17,24 +29,21 @@ class TestPut:
         # create 1 readable file
         data = data_fixture_put(1, 0)
         filepath = get_readable_path(1)
-        response = nlds_client.put_filelist([filepath])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath])
         assert(state == "COMPLETE")
         
     def test_put_2(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting an unreadable file to NLDS, without any metadata"""
         data = data_fixture_put(0, 1)
         filepath = get_unreadable_path(1)
-        response = nlds_client.put_filelist([filepath])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath])
         assert(state == "FAILED")
 
     def test_put_3(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a non existing file to NLDS, without any metadata"""
         data = data_fixture_put(0, 1)
         filepath = "blah"
-        response = nlds_client.put_filelist([filepath])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath])
         assert(state == "FAILED")
 
     def test_put_4(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
@@ -42,8 +51,7 @@ class TestPut:
         exist"""
         data = data_fixture_put(1, 0)
         filepath = get_readable_path(1)
-        response = nlds_client.put_filelist([filepath], label="label_1")
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath], label="label_1")
         assert(state == "COMPLETE")
 
     def test_put_5(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
@@ -53,11 +61,9 @@ class TestPut:
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1], label="label_1")
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], label="label_1")
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist([filepath_2], label="label_1")
-        state = wait_completed(response=response)
+        state, response = put_filelist(data, [filepath_2], label="label_1")
         assert(state == "COMPLETE")
         # get the files in holding_id=1 - there should be two
         user = response["user"]
@@ -71,11 +77,9 @@ class TestPut:
         in a holding with a label that already exists"""
         data = data_fixture_put(1, 0)
         filepath_1 = get_readable_path(1)
-        response = nlds_client.put_filelist([filepath_1], label="label_1")
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], label="label_1")
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist([filepath_1], label="label_1")
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], label="label_1")
         assert(state == "FAILED")
 
     def test_put_7(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
@@ -83,8 +87,7 @@ class TestPut:
         exist"""
         data = data_fixture_put(1, 0)
         filepath_1 = get_readable_path(1)
-        response = nlds_client.put_filelist([filepath_1], job_label="job_1")
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], job_label="job_1")
         assert(state == "COMPLETE")
 
     def test_put_8(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
@@ -93,11 +96,9 @@ class TestPut:
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1], job_label="job_1")
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], job_label="job_1")
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist([filepath_2], job_label="job_1")
-        state = wait_completed(response=response)
+        state, response = put_filelist(data, [filepath_2], job_label="job_1")
         assert(state == "COMPLETE")
         # get the files in holding_id=1 - there should be one
         user = response["user"]
@@ -111,8 +112,7 @@ class TestPut:
         not exist"""
         data = data_fixture_put(1, 0)
         filepath_1 = get_readable_path(1)
-        response = nlds_client.put_filelist([filepath_1], holding_id=1)
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], holding_id=1)
         assert(state == "FAILED")
 
     def test_put_9a(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
@@ -123,7 +123,7 @@ class TestPut:
         # this should throw an RequestError exception as the HTTP_API is
         # expecting an integer holding_id
         with pytest.raises(nlds_error.RequestError) as re:
-            response = nlds_client.put_filelist([filepath_1], holding_id="abcdefg")
+            _, _ = put_filelist(data, [filepath_1], holding_id="abcdefg")
 
     def test_put_10(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to NLDS with a holding_id that already 
@@ -131,12 +131,10 @@ class TestPut:
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1])
         assert(state == "COMPLETE")
         # holding id will be 1 as we start with a new database each time
-        response = nlds_client.put_filelist([filepath_2], holding_id=1)
-        state = wait_completed(response=response)
+        state, response = put_filelist(data, [filepath_2], holding_id=1)
         assert(state == "COMPLETE")
         # get the files in holding_id=1 - there should be two
         user = response["user"]
@@ -150,12 +148,10 @@ class TestPut:
         exists, where the file already exists in the holding"""
         data = data_fixture_put(1, 0)
         filepath_1 = get_readable_path(1)
-        response = nlds_client.put_filelist([filepath_1])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1])
         assert(state == "COMPLETE")
         # holding id will be 1 as we start with a new database each time
-        response = nlds_client.put_filelist([filepath_1], holding_id=1)
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], holding_id=1)
         assert(state == "FAILED")
 
     def test_put_12(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
@@ -163,14 +159,12 @@ class TestPut:
         exist and the label does not exist"""
         data = data_fixture_put(1, 0)
         filepath_1 = get_readable_path(1)
-        response = nlds_client.put_filelist([filepath_1])
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1])
         assert(state == "COMPLETE")
         # holding id will be 1 as we start with a new database each time
-        response = nlds_client.put_filelist(
-            [filepath_1], holding_id=1, label="holding_1"
+        state, _ = put_filelist(
+            data, [filepath_1], holding_id=1, label="holding_1"
         )
-        state = wait_completed(response=response)
         assert(state == "FAILED")
 
     def test_put_13(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
@@ -179,14 +173,12 @@ class TestPut:
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1]) # this creates the holding
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1]) # this creates the holding
         assert(state == "COMPLETE")
         # holding id will be 1 as we start with a new database each time
-        response = nlds_client.put_filelist(
-            [filepath_2], holding_id=1, label="holding_1"
+        state, _ = put_filelist(
+            data, [filepath_2], holding_id=1, label="holding_1"
         )
-        state = wait_completed(response=response)
         assert(state == "FAILED")
 
     def test_put_14(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
@@ -195,15 +187,13 @@ class TestPut:
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1], label="holding_1")
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], label="holding_1")
         assert(state == "COMPLETE")
         # existing holding id will be 1 as we start with a new database each time
         # so use holding_id=2 to not exist
-        response = nlds_client.put_filelist(
-            [filepath_2], holding_id=2, label="holding_1"
+        state, _ = put_filelist(
+            data, [filepath_2], holding_id=2, label="holding_1"
         )
-        state = wait_completed(response=response)
         assert(state == "FAILED")
 
     def test_put_15(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
@@ -215,19 +205,16 @@ class TestPut:
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         filepath_3 = get_readable_path(3)
-        response = nlds_client.put_filelist([filepath_1], label="holding_1")
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], label="holding_1")
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist([filepath_2], label="holding_2")
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_2], label="holding_2")
         assert(state == "COMPLETE")
         # existing holding id will be 1 as we start with a new database each 
         # time, this holding will have label holding_1, so use holding_2 for the
         # test (which will have holding id=2)
-        response = nlds_client.put_filelist(
-            [filepath_3], holding_id=1, label="holding_2"
+        state, response = put_filelist(
+            data, [filepath_3], holding_id=1, label="holding_2"
         )
-        state = wait_completed(response=response)
         assert(state == "FAILED")
         # get the files in holding_id=1 - there should be only one
         user = response["user"]
@@ -242,8 +229,7 @@ class TestPut:
         data = data_fixture_put(1, 0)
         filepath_1 = get_readable_path(1)
         tag = {"author":"Neil Massey"}
-        response = nlds_client.put_filelist([filepath_1], tag=tag)
-        state = wait_completed(response=response)
+        state, response = put_filelist(data, [filepath_1], tag=tag)
         assert(state == "COMPLETE")
         # get the tag from the holding to check it exists
         user = response["user"]
@@ -260,11 +246,9 @@ class TestPut:
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         tag = {"author":"Neil Massey"}
-        response = nlds_client.put_filelist([filepath_1], tag=tag)
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], tag=tag)
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist([filepath_2], tag=tag)
-        state = wait_completed(response=response)
+        state, response = put_filelist(data, [filepath_2], tag=tag)
         assert(state == "COMPLETE")
         # get the tag from each of the holdings to check they exist
         user = response["user"]
@@ -283,14 +267,12 @@ class TestPut:
         data = data_fixture_put(2, 0)
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
-        response = nlds_client.put_filelist([filepath_1], label="holding_1")
-        state = wait_completed(response=response)
+        state, _ = put_filelist(data, [filepath_1], label="holding_1")
         assert(state == "COMPLETE")
         tag = {"author":"Neil Massey"}
-        response = nlds_client.put_filelist(
-            [filepath_2], label="holding_1", tag=tag
+        state, response = put_filelist(
+            data, [filepath_2], label="holding_1", tag=tag
         )
-        state = wait_completed(response=response)
         assert(state == "COMPLETE")
         # get the tag from each of the holdings to check they exist
         user = response["user"]
@@ -311,13 +293,11 @@ class TestPut:
         filepath_1 = get_readable_path(1)
         filepath_2 = get_readable_path(2)
         tag = {"author":"Neil Massey"}
-        response = nlds_client.put_filelist(
-            [filepath_1], label="holding_1", tag=tag
+        state, _ = put_filelist(
+            data, [filepath_1], label="holding_1", tag=tag
         )
-        state = wait_completed(response=response)
         assert(state == "COMPLETE")
-        response = nlds_client.put_filelist(
-            [filepath_2], label="holding_1", tag=tag
+        state, _ = put_filelist(
+            data, [filepath_2], label="holding_1", tag=tag
         )
-        state = wait_completed(response=response)
         assert(state == "COMPLETE_WITH_WARNINGS")
