@@ -6,10 +6,21 @@ import pathlib, shutil
 import random, string
 import time, json
 import minio
+import asyncio
 
 from nlds_processors.catalog.catalog_worker import CatalogConsumer
 from nlds_processors.monitor.monitor_worker import MonitorConsumer
 from nlds_client.clientlib import transactions as nlds_client
+
+
+@pytest.fixture
+def loop():
+    # allows the testing of asynchronus functions using an event loop
+    
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
 
 def get_top_path():
     return pathlib.Path(__file__).parent.parent.resolve()
@@ -367,7 +378,7 @@ def monitor_fixture_put(worker_fixture):
     delete_monitor()
 
 
-@pytest.fixture(autouse=True, scope="class")
+@pytest.fixture(scope="class")
 def index_fixture(worker_fixture):
     print("LAUNCHING INDEXER")
     # run the indexer executable
@@ -378,7 +389,7 @@ def index_fixture(worker_fixture):
     terminate(p)
 
 
-@pytest.fixture(autouse=True, scope="class")
+@pytest.fixture(scope="class")
 def worker_fixture(server_fixture, logger_fixture):
     print("LAUNCHING WORKER")
     # run the worker executable
@@ -402,7 +413,7 @@ def server_fixture():
     terminate(p)
 
 
-@pytest.fixture(autouse=True, scope="class")
+@pytest.fixture(scope="class")
 def put_transfer_fixture(worker_fixture):
     print("LAUNCHING PUT TRANSFER")
     # run the put_transfer executable
@@ -413,7 +424,7 @@ def put_transfer_fixture(worker_fixture):
     terminate(p)
 
 
-@pytest.fixture(autouse=True, scope="class")
+@pytest.fixture(scope="class")
 def get_transfer_fixture(worker_fixture):
     print("LAUNCHING GET TRANSFER")
     # run the get_transfer executable
@@ -424,7 +435,7 @@ def get_transfer_fixture(worker_fixture):
     terminate(p)
 
 
-@pytest.fixture(autouse=True, scope="class")
+@pytest.fixture(scope="class")
 def logger_fixture():
     print("LAUNCHING LOGGER")
     # run the logging executable
@@ -440,7 +451,7 @@ def pause_fixture():
     print("SLEEPING")
     # increased sleeping time due to catalog_q and monitor_q not always 
     # completing
-    time.sleep(1)
+    time.sleep(7)
 
 # These fixtures (data_fixture_get, catalog_fixture_get and monitor_fixture_get)
 # look very similar to their _put counterparts.  However, they do have different
@@ -486,3 +497,114 @@ def monitor_fixture_get(worker_fixture):
     yield
     terminate(p)
     delete_monitor()
+
+
+
+
+
+        
+@pytest.fixture(scope="class")
+def monitor_fixture_3(worker_fixture_3):
+    # run 3 executable monitors
+    # this requires NLDS to be pip install and the `monitor_q` command to be
+    # available
+    print("LAUNCHING MONITORS (3)")
+    p = subprocess.Popen(["monitor_q"])
+    q = subprocess.Popen(["monitor_q"])
+    y = subprocess.Popen(["monitor_q"])
+    yield
+    terminate(p)
+    terminate(q)
+    terminate(y)
+    delete_monitor()
+    
+    
+@pytest.fixture(scope="class")
+def worker_fixture_3(server_fixture, logger_fixture_3):
+    print("LAUNCHING WORKERS (3)")
+    # run the worker executable
+    # this requires NLDS to be pip install and the `nlds_q` command to be
+    # available in the path
+    p = subprocess.Popen(["nlds_q"])
+    q = subprocess.Popen(["nlds_q"])
+    y = subprocess.Popen(["nlds_q"])
+    yield
+    terminate(p)
+    terminate(q)
+    terminate(y)
+    
+
+@pytest.fixture(scope="class")
+def logger_fixture_3():
+    print("LAUNCHING LOGGER (3)")
+    # run the logging executable
+    # this requires NLDS to be pip install and the `logging_q` command to 
+    # be available in the path
+    p = subprocess.Popen(["logging_q"])
+    q = subprocess.Popen(["logging_q"])
+    y = subprocess.Popen(["logging_q"])
+    yield
+    terminate(p)
+    terminate(q)
+    terminate(y)
+    
+    
+@pytest.fixture(scope="class")
+def put_transfer_fixture_3(worker_fixture_3):
+    print("LAUNCHING PUT TRANSFER (3)")
+    # run the put_transfer executable
+    # this requires NLDS to be pip install and the `put_transfer_q` command to 
+    # be available in the path
+    p = subprocess.Popen(["transfer_put_q"])
+    q = subprocess.Popen(["transfer_put_q"])
+    y = subprocess.Popen(["transfer_put_q"])
+    yield
+    terminate(p)
+    terminate(q)
+    terminate(y)
+
+
+@pytest.fixture(scope="class")
+def get_transfer_fixture_3(worker_fixture_3):
+    print("LAUNCHING GET TRANSFER (3)")
+    # run the get_transfer executable
+    # this requires NLDS to be pip install and the `get_transfer_q` command to 
+    # be available in the path
+    p = subprocess.Popen(["transfer_get_q"])
+    q = subprocess.Popen(["transfer_get_q"])
+    y = subprocess.Popen(["transfer_get_q"])
+    yield
+    terminate(p)
+    terminate(q)
+    terminate(y)
+    
+    
+@pytest.fixture(scope="class")
+def catalog_fixture_get_3(worker_fixture_3):
+    # run the catalog executable
+    # this requires NLDS to be pip install and the `catalog_q` command to be
+    # available
+    print("LAUNCHING CATALOG (3)")
+    p = subprocess.Popen(["catalog_q"])
+    q = subprocess.Popen(["catalog_q"])
+    y = subprocess.Popen(["catalog_q"])
+    yield
+    terminate(p)
+    terminate(q)
+    terminate(y)
+    delete_catalog()
+    
+    
+@pytest.fixture(scope="class")
+def index_fixture_3(worker_fixture_3):
+    print("LAUNCHING INDEXER")
+    # run the indexer executable
+    # this requires NLDS to be pip install and the `index_q` command to be
+    # available in the path
+    p = subprocess.Popen(["index_q"])
+    q = subprocess.Popen(["index_q"])
+    y = subprocess.Popen(["index_q"])
+    yield
+    terminate(p)
+    terminate(q)
+    terminate(y)
