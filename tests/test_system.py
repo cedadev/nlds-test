@@ -727,7 +727,7 @@ class TestSystem2:
         attrs.pop('raw_headers')
         
         to_assert = ("{'template': <Template 'index.html'>, "
-"'context': {'request': <class 'starlette.requests.Request'>, 'stats': "
+"'context': {'request': <class 'starlette.requests.Request'>, 'status': "
 "{'monitor': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
 "'catalog': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
 "'nlds_worker': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
@@ -758,7 +758,7 @@ class TestSystem2:
         
         assert isinstance(attrs["context"]["request"], abc.ABCMeta)
         
-        assert str(attrs["context"]["stats"]) == status
+        assert str(attrs["context"]["status"]) == status
 
 
     def test_faulty_rabbit_details(self, index_fixture_3, loop):

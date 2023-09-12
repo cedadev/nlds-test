@@ -1,7 +1,7 @@
 # Syatem status tests
 
 
-`/system/stats/` is the extention that brings up the system status web page
+`/system/status/` is the extention that brings up the system status web page
 
 
 ## Tests
