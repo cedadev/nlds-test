@@ -715,7 +715,7 @@ class TestSystem2:
         
         # uses a pytest fixture to make an event loop that will run the asyncronus
         # function that is being called and store its output
-        get = loop.run_until_complete(system.get(Request))
+        get = loop.run_until_complete(system.get(Request, time_limit=5 ,consumer="all"))
         
         # gets the output as a dict to be easily manipulated
         attrs = (get.__dict__)
