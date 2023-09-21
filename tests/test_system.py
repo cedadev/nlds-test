@@ -180,13 +180,60 @@ class TestSystem1:
                             "colour": "RED"}
         assert consumer["val"] == "All Consumers Offline (None running)"
         assert consumer["colour"] == "RED"
+        
+        
+    def test_archive_get_all_offline(self, loop):
+        """testing archive_get offline"""
+        
+        time_limit = 5
+        msg_dict = {
+            "details": {
+                "api_action": "system_stat", 
+                "target_consumer": "", 
+                "ignore_message": False
+                }
+            }
+        
+        consumer = loop.run_until_complete(
+            system.get_consumer_status(
+                "archive_get_q", "archive_get", msg_dict, time_limit, 0))
+        consumer = consumer[0]
+        
+        assert consumer == {"val": "All Consumers Offline (None running)", 
+                            "colour": "RED"}
+        assert consumer["val"] == "All Consumers Offline (None running)"
+        assert consumer["colour"] == "RED"
+        
+        
+    def test_archive_put_all_offline(self, loop):
+        """testing archive_put offline"""
+        
+        time_limit = 5
+        msg_dict = {
+            "details": {
+                "api_action": "system_stat", 
+                "target_consumer": "", 
+                "ignore_message": False
+                }
+            }
+        
+        consumer = loop.run_until_complete(
+            system.get_consumer_status(
+                "archive_put_q", "archive_put", msg_dict, time_limit, 0))
+        consumer = consumer[0]
+        
+        assert consumer == {"val": "All Consumers Offline (None running)", 
+                            "colour": "RED"}
+        assert consumer["val"] == "All Consumers Offline (None running)"
+        assert consumer["colour"] == "RED"
     
 
 
 @pytest.mark.usefixtures("loop", "pause_fixture", "monitor_fixture_3", 
                          "worker_fixture_3", "logger_fixture_3", 
                          "put_transfer_fixture_3", "get_transfer_fixture_3", 
-                         "catalog_fixture_get_3", "index_fixture_3")
+                         "catalog_fixture_get_3", "index_fixture_3", 
+                         "archive_get_fixture_3", "archive_put_fixture_3")
 class TestSystem2:
     
     def test_nlds_all_online(self, index_fixture_3, loop):
@@ -704,13 +751,165 @@ class TestSystem2:
                             "colour": "ORANGE"}
         assert consumer["val"] == "Consumers Online (2/3)"
         assert consumer["colour"] == "ORANGE"
+        
+        
+        
+        
+    def test_archive_get_all_online(self, archive_get_fixture_3, loop):
+        """testing if archive_gets works"""
+        
+        time_limit = 5
+        msg_dict = {
+            "details": {
+                "api_action": "system_stat", 
+                "target_consumer": "", 
+                "ignore_message": False
+                }
+            }
+        
+        consumer = loop.run_until_complete(
+            system.get_consumer_status(
+                "archive_get_q", "archive_get", msg_dict, time_limit, 0))
+        consumer = consumer[0]
+        
+        assert consumer == {"val": "All Consumers Online (3/3)", 
+                            "colour": "GREEN"}
+        assert consumer["val"] == "All Consumers Online (3/3)"
+        assert consumer["colour"] == "GREEN"
+        
+    
+    def test_archive_get_all_failed(self, archive_get_fixture_3, loop):
+        """testing all archive_gets fail"""
+        
+        time_limit = 5
+        msg_dict = {
+            "details": {
+                "api_action": "system_stat", 
+                "target_consumer": "", 
+                "ignore_message": False
+                }
+            }
+        
+        consumer = loop.run_until_complete(
+            system.get_consumer_status(
+                "archive_get_q", "archive_get", msg_dict, time_limit, 3))
+        consumer = consumer[0]
+        
+        consumer.pop("failed")
+        
+        assert consumer == {"val": "All Consumers Offline (0/3)", 
+                            "colour": "RED"}
+        assert consumer["val"] == "All Consumers Offline (0/3)"
+        assert consumer["colour"] == "RED"
+        
+        
+    def test_archive_get_some_online(self, archive_get_fixture_3, loop):
+        """testing some archive_gets work"""
+        
+        time_limit = 5
+        msg_dict = {
+            "details": {
+                "api_action": "system_stat", 
+                "target_consumer": "", 
+                "ignore_message": False
+                }
+            }
+        
+        consumer = loop.run_until_complete(
+            system.get_consumer_status(
+                "archive_get_q", "archive_get", msg_dict, time_limit, 1))
+        consumer = consumer[0]
+        
+        consumer.pop("failed")
+        
+        assert consumer == {"val": "Consumers Online (2/3)", 
+                            "colour": "ORANGE"}
+        assert consumer["val"] == "Consumers Online (2/3)"
+        assert consumer["colour"] == "ORANGE"
+        
+    
+    
+    
+    def test_archive_put_all_online(self, archive_put_fixture_3, loop):
+        """testing if archive_puts works"""
+        
+        time_limit = 5
+        msg_dict = {
+            "details": {
+                "api_action": "system_stat", 
+                "target_consumer": "", 
+                "ignore_message": False
+                }
+            }
+        
+        consumer = loop.run_until_complete(
+            system.get_consumer_status(
+                "archive_put_q", "archive_put", msg_dict, time_limit, 0))
+        consumer = consumer[0]
+        
+        assert consumer == {"val": "All Consumers Online (3/3)", 
+                            "colour": "GREEN"}
+        assert consumer["val"] == "All Consumers Online (3/3)"
+        assert consumer["colour"] == "GREEN"
+        
+    
+    def test_archive_put_all_failed(self, archive_put_fixture_3, loop):
+        """testing all archive_puts fail"""
+        
+        time_limit = 5
+        msg_dict = {
+            "details": {
+                "api_action": "system_stat", 
+                "target_consumer": "", 
+                "ignore_message": False
+                }
+            }
+        
+        consumer = loop.run_until_complete(
+            system.get_consumer_status(
+                "archive_put_q", "archive_put", msg_dict, time_limit, 3))
+        consumer = consumer[0]
+        
+        consumer.pop("failed")
+        
+        assert consumer == {"val": "All Consumers Offline (0/3)", 
+                            "colour": "RED"}
+        assert consumer["val"] == "All Consumers Offline (0/3)"
+        assert consumer["colour"] == "RED"
+        
+        
+    def test_archive_put_some_online(self, archive_put_fixture_3, loop):
+        """testing some archive_puts work"""
+        
+        time_limit = 5
+        msg_dict = {
+            "details": {
+                "api_action": "system_stat", 
+                "target_consumer": "", 
+                "ignore_message": False
+                }
+            }
+        
+        consumer = loop.run_until_complete(
+            system.get_consumer_status(
+                "archive_put_q", "archive_put", msg_dict, time_limit, 1))
+        consumer = consumer[0]
+        
+        consumer.pop("failed")
+        
+        assert consumer == {"val": "Consumers Online (2/3)", 
+                            "colour": "ORANGE"}
+        assert consumer["val"] == "Consumers Online (2/3)"
+        assert consumer["colour"] == "ORANGE"
+    
+    
 
 
 
     def test_get_success(self, loop, monitor_fixture_3, worker_fixture_3, 
                          logger_fixture_3, put_transfer_fixture_3, 
                          get_transfer_fixture_3, catalog_fixture_get_3, 
-                         index_fixture_3):
+                         index_fixture_3, archive_get_fixture_3, archive_put_fixture_3):
         """test if every consumer in get works """
         
         # uses a pytest fixture to make an event loop that will run the asyncronus
@@ -734,7 +933,10 @@ class TestSystem2:
 "'index': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
 "'get_transfer': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
 "'put_transfer': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
-"'logger': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, 'failed': "
+"'logger': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
+"'archive_get': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
+"'archive_put': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
+"'failed': "
 "{'failed_num': 0, 'failed_colour': 'alert-success'}}}, 'status_code': 200}")
     
     
@@ -745,8 +947,10 @@ class TestSystem2:
 "'index': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
 "'get_transfer': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
 "'put_transfer': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
-"'logger': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, 'failed': "
-"{'failed_num': 0, 'failed_colour': 'alert-success'}}")
+"'logger': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
+"'archive_get': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
+"'archive_put': {'val': 'All Consumers Online (3/3)', 'colour': 'GREEN'}, "
+"'failed': {'failed_num': 0, 'failed_colour': 'alert-success'}}")
     
         assert str(attrs) == to_assert
         
@@ -791,8 +995,8 @@ class TestSystem2:
     def test_get_service_json_success(self, loop, monitor_fixture_3, worker_fixture_3, 
                          logger_fixture_3, put_transfer_fixture_3, 
                          get_transfer_fixture_3, catalog_fixture_get_3, 
-                         index_fixture_3):
-        """test if every consumer in get works """
+                         index_fixture_3, archive_get_fixture_3, archive_put_fixture_3):
+        """test if the json form of the webpage works """
         
         # uses a pytest fixture to make an event loop that will run the asyncronus
         # function that is being called and store its output
@@ -815,8 +1019,8 @@ class TestSystem2:
     def test_get_service_json_fail(self, loop, monitor_fixture_3, worker_fixture_3, 
                          logger_fixture_3, put_transfer_fixture_3, 
                          get_transfer_fixture_3, catalog_fixture_get_3, 
-                         index_fixture_3):
-        """test if every consumer in get works """
+                         index_fixture_3, archive_get_fixture_3, archive_put_fixture_3):
+        """test if the website fixes itself if a url is put in wrong """
         
         # uses a pytest fixture to make an event loop that will run the asyncronus
         # function that is being called and store its output

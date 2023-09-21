@@ -499,6 +499,26 @@ def monitor_fixture_get(worker_fixture):
     delete_monitor()
 
 
+@pytest.fixture(scope="class")
+def archive_get_fixture(worker_fixture):
+    print("LAUNCHING ARCHIVE GET")
+    # run the archive_get executable
+    # this requires NLDS to be pip install and the `archive_get_q` command to 
+    # be available in the path
+    p = subprocess.Popen(["archive_get_q"])
+    yield
+    terminate(p)
+
+
+@pytest.fixture(scope="class")
+def archive_put_fixture(worker_fixture):
+    print("LAUNCHING ARCHIVE PUT")
+    # run the archive_put executable
+    # this requires NLDS to be pip install and the `archive_put_q` command to 
+    # be available in the path
+    p = subprocess.Popen(["archive_put_q"])
+    yield
+    terminate(p)
 
 
 
@@ -597,13 +617,43 @@ def catalog_fixture_get_3(worker_fixture_3):
     
 @pytest.fixture(scope="class")
 def index_fixture_3(worker_fixture_3):
-    print("LAUNCHING INDEXER")
+    print("LAUNCHING INDEXER (3)")
     # run the indexer executable
     # this requires NLDS to be pip install and the `index_q` command to be
     # available in the path
     p = subprocess.Popen(["index_q"])
     q = subprocess.Popen(["index_q"])
     y = subprocess.Popen(["index_q"])
+    yield
+    terminate(p)
+    terminate(q)
+    terminate(y)
+    
+    
+@pytest.fixture(scope="class")
+def archive_get_fixture_3(worker_fixture_3):
+    print("LAUNCHING ARCHIVE GET (3)")
+    # run the archive_get executable
+    # this requires NLDS to be pip install and the `archive_get_q` command to be
+    # available in the path
+    p = subprocess.Popen(["archive_get_q"])
+    q = subprocess.Popen(["archive_get_q"])
+    y = subprocess.Popen(["archive_get_q"])
+    yield
+    terminate(p)
+    terminate(q)
+    terminate(y)
+    
+    
+@pytest.fixture(scope="class")
+def archive_put_fixture_3(worker_fixture_3):
+    print("LAUNCHING ARCHIVE PUT (3)")
+    # run the archive_put executable
+    # this requires NLDS to be pip install and the `archive_put_q` command to be
+    # available in the path
+    p = subprocess.Popen(["archive_put_q"])
+    q = subprocess.Popen(["archive_put_q"])
+    y = subprocess.Popen(["archive_put_q"])
     yield
     terminate(p)
     terminate(q)
