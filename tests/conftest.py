@@ -355,7 +355,7 @@ def catalog_fixture_put(worker_fixture):
 
 
 @pytest.fixture(scope="class")
-def monitor_fixture_put(worker_fixture):
+def monitor_fixture(worker_fixture):
     # run the monitor executable
     # this requires NLDS to be pip install and the `monitor_q` command to be
     # available
@@ -474,15 +474,3 @@ def catalog_fixture_get(worker_fixture):
     yield
     terminate(p)
     delete_catalog()
-
-
-@pytest.fixture(scope="class")
-def monitor_fixture_get(worker_fixture):
-    # run the monitor executable
-    # this requires NLDS to be pip install and the `monitor_q` command to be
-    # available
-    print("LAUNCHING MONITOR")
-    p = subprocess.Popen(["monitor_q"])
-    yield
-    terminate(p)
-    delete_monitor()
