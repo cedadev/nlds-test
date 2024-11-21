@@ -67,4 +67,6 @@ The other command line options and arguments are:
 | put_18| **exists** | -   |  -       | **NOT exists** | **readable** | **COMPLETE** | file is added to existing holding and tag is added |
 | put_19| **exists** | -   |  -       | **exists** | **readable** | **COMPLETE_WITH_WARNINGS** | file is added to existing holding, tag is not added as already exists, warning given |
 
+Should add PUT for a user that doesn't exist.
+
  [return](./integration_testing.md)
