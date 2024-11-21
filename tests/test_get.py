@@ -41,10 +41,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "COMPLETE"
 
-<<<<<<< HEAD
-    def test_get_1a(self, monitor_fixture, catalog_fixture_get, 
-                    data_fixture_get, make_target_dirs):
-=======
     def test_get_1a(
         self,
         monitor_fixture_get,
@@ -52,7 +48,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that exists in the NLDS - no target so should restore to
         the original directory.  Does this user have write permission to that
         directory - this will determine the outcome."""
@@ -62,10 +57,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "COMPLETE"
 
-<<<<<<< HEAD
-    def test_get_2(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_2(
         self,
         monitor_fixture_get,
@@ -73,7 +64,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that doesn't exist in the NLDS"""
         filepath = "fake_file"
         target = get_target_dir().as_posix()
@@ -83,10 +73,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_3(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_3(
         self,
         monitor_fixture_get,
@@ -94,7 +80,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that exists in a holding"""
         filepath = get_readable_path(1).as_posix()
         target = get_target_dir().as_posix()
@@ -104,10 +89,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "COMPLETE"
 
-<<<<<<< HEAD
-    def test_get_4(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_4(
         self,
         monitor_fixture_get,
@@ -115,7 +96,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that doesn't exist in a holding"""
         filepath = "fake_file"
         target = get_target_dir().as_posix()
@@ -125,10 +105,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_5(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_5(
         self,
         monitor_fixture_get,
@@ -136,7 +112,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that does exist in the NLDS, but in a different holding"""
         filepath = get_readable_path(6).as_posix()
         target = get_target_dir().as_posix()
@@ -146,10 +121,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_6(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_6(
         self,
         monitor_fixture_get,
@@ -157,7 +128,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that exists in the NLDS, and within a holding id"""
         filepath = get_readable_path(1).as_posix()
         target = get_target_dir().as_posix()
@@ -167,10 +137,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "COMPLETE"
 
-<<<<<<< HEAD
-    def test_get_7(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_7(
         self,
         monitor_fixture_get,
@@ -178,7 +144,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that doesn't exist and use a holding_id that does"""
         filepath = "fake_file"
         target = get_target_dir().as_posix()
@@ -188,10 +153,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_8(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_8(
         self,
         monitor_fixture_get,
@@ -199,7 +160,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that exists in the NLDS, from a holding id that doesn't"""
         filepath = get_readable_path(1).as_posix()
         target = get_target_dir().as_posix()
@@ -209,11 +169,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_9(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-        """Get a file that doesn't exist in the NLDS, from a holding id that 
-=======
     def test_get_9(
         self,
         monitor_fixture_get,
@@ -222,7 +177,6 @@ class TestGet:
         make_target_dirs,
     ):
         """Get a file that doesn't exist in the NLDS, from a holding id that
->>>>>>> test_system
         also doesn't exist."""
         filepath = "fake_file"
         target = get_target_dir().as_posix()
@@ -232,10 +186,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_10(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_10(
         self,
         monitor_fixture_get,
@@ -243,7 +193,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that exists in the NLDS, specifying a job label"""
         filepath = get_readable_path(1).as_posix()
         target = get_target_dir().as_posix()
@@ -254,10 +203,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "COMPLETE"
 
-<<<<<<< HEAD
-    def test_get_11(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_11(
         self,
         monitor_fixture_get,
@@ -265,7 +210,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get two files that exists in the NLDS, specifying the same job label.
         For each file retrieval.
         """
@@ -284,12 +228,6 @@ class TestGet:
         state = wait_completed(response=response_2)
         assert state == "COMPLETE"
 
-<<<<<<< HEAD
-    def test_get_12(self, monitor_fixture, catalog_fixture_get, 
-                    data_fixture_get, make_target_dirs):
-        """Test get by tag for a file and tag that exists in the same holding.
-        """
-=======
     def test_get_12(
         self,
         monitor_fixture_get,
@@ -298,7 +236,6 @@ class TestGet:
         make_target_dirs,
     ):
         """Test get by tag for a file and tag that exists in the same holding."""
->>>>>>> test_system
         filepath = get_readable_path(6).as_posix()
         target = get_target_dir().as_posix()
         tag = {"filelist": "6 to 10"}
@@ -308,11 +245,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "COMPLETE"
 
-<<<<<<< HEAD
-    def test_get_13(self, monitor_fixture, catalog_fixture_get, 
-                    data_fixture_get, make_target_dirs):
-        """Test get by tag for a file that exists but with a tag that exists in 
-=======
     def test_get_13(
         self,
         monitor_fixture_get,
@@ -321,7 +253,6 @@ class TestGet:
         make_target_dirs,
     ):
         """Test get by tag for a file that exists but with a tag that exists in
->>>>>>> test_system
         a different holding.
         """
         filepath = get_readable_path(6).as_posix()
@@ -333,11 +264,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_14(self, monitor_fixture, catalog_fixture_get, 
-                    data_fixture_get, make_target_dirs):
-        """Test get by tag for a file that does not exist but with a tag that 
-=======
     def test_get_14(
         self,
         monitor_fixture_get,
@@ -346,7 +272,6 @@ class TestGet:
         make_target_dirs,
     ):
         """Test get by tag for a file that does not exist but with a tag that
->>>>>>> test_system
         exists in a holding.
         """
         filepath = get_unreadable_path(6).as_posix()
@@ -358,10 +283,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_15(self, monitor_fixture, catalog_fixture_get, 
-                    data_fixture_get, make_target_dirs):
-=======
     def test_get_15(
         self,
         monitor_fixture_get,
@@ -369,7 +290,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Test get by tag for a file and tag that exists in the same holding,
         with the label provided.
         """
@@ -386,12 +306,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "COMPLETE"
 
-<<<<<<< HEAD
-    def test_get_16(self, monitor_fixture, catalog_fixture_get, 
-                    data_fixture_get, make_target_dirs):
-        """Test get by tag and label for a file that exists in a holding with 
-        the label provided.  The tag does not exist for the holding with the 
-=======
     def test_get_16(
         self,
         monitor_fixture_get,
@@ -401,7 +315,6 @@ class TestGet:
     ):
         """Test get by tag and label for a file that exists in a holding with
         the label provided.  The tag does not exist for the holding with the
->>>>>>> test_system
         label so the request will fail as the tag and label must match.
         """
         filepath = get_readable_path(1).as_posix()
@@ -417,10 +330,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_17(self, monitor_fixture, catalog_fixture_get, 
-                    data_fixture_get, make_target_dirs):
-=======
     def test_get_17(
         self,
         monitor_fixture_get,
@@ -428,7 +337,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Test get by tag and label for a file that does not exist in a holding
         with the label provided.  The tag does exist in the holding with the
         tag, so the request will fail as the tag and label must match.
@@ -446,10 +354,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_18(self, monitor_fixture, catalog_fixture_get, 
-                    data_fixture_get, make_target_dirs):
-=======
     def test_get_18(
         self,
         monitor_fixture_get,
@@ -457,7 +361,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Test get by tag and holding id for a file that exists in a holding
         with the holding id provided.  The tag also exists for the holding."""
         filepath = get_readable_path(6).as_posix()
@@ -469,10 +372,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "COMPLETE"
 
-<<<<<<< HEAD
-    def test_get_19(self, monitor_fixture, catalog_fixture_get, 
-                    data_fixture_get, make_target_dirs):
-=======
     def test_get_19(
         self,
         monitor_fixture_get,
@@ -480,7 +379,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Test get by tag and holding id for a file that exists in a holding
         with the holding id provided.  However, the tag does not exist for the
         holding.  This fails as the tag and holding id must match."""
@@ -493,10 +391,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_20(self, monitor_fixture, catalog_fixture_get, 
-                    data_fixture_get, make_target_dirs):
-=======
     def test_get_20(
         self,
         monitor_fixture_get,
@@ -504,7 +398,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Test get by tag and holding id for a file that exists in a holding
         with the tag provided.  However, the tag does not exist for the
         holding with the holding id provided.
@@ -518,10 +411,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_21(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_21(
         self,
         monitor_fixture_get,
@@ -529,7 +418,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that exists in a holding, but write to an existing but
         unreadable / unwriteable directory"""
         filepath = get_readable_path(1).as_posix()
@@ -540,10 +428,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_21a(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_21a(
         self,
         monitor_fixture_get,
@@ -551,7 +435,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that exists in the NLDS, but write to an existing but
         unreadable / unwriteable directory.
         Variation on 21 but without a label / holding."""
@@ -563,10 +446,6 @@ class TestGet:
         state = wait_completed(response=response)
         assert state == "FAILED"
 
-<<<<<<< HEAD
-    def test_get_22(self, monitor_fixture, catalog_fixture_get, 
-                   data_fixture_get, make_target_dirs):
-=======
     def test_get_22(
         self,
         monitor_fixture_get,
@@ -574,7 +453,6 @@ class TestGet:
         data_fixture_get,
         make_target_dirs,
     ):
->>>>>>> test_system
         """Get a file that exists in a holding, but write to a target that
         doesn't exist - the directory will be created, if the user has write
         permission."""
