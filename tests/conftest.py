@@ -16,7 +16,7 @@ from nlds_client.clientlib import transactions as nlds_client
 @pytest.fixture
 def loop():
     # allows the testing of asynchronus functions using an event loop
-    
+
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
@@ -24,6 +24,7 @@ def loop():
 
 def get_top_path():
     return pathlib.Path(__file__).parent.parent.resolve()
+
 
 def get_readable_path(n):
     """Get the path of a readable file."""
@@ -65,7 +66,7 @@ def get_unwriteable_target_dir():
     """Get the path of an unreadable directory"""
     target_uw = get_top_path().joinpath("target_uw").resolve()
     return target_uw
-    
+
 
 def get_nonexistant_target_dir():
     """Get the path of a directory that does not exist"""
@@ -83,12 +84,11 @@ def count_retrieved_files():
 
 
 def wait_completed(user=None, group=None, transaction_id=None, response=None):
-    """Wait until a transaction has completed using stat (get_transaction_state)
-    """
+    """Wait until a transaction has completed using stat (get_transaction_state)"""
     if response is not None:
-        user = response['user']
-        group = response['group']
-        transaction_id = response['transaction_id']
+        user = response["user"]
+        group = response["group"]
+        transaction_id = response["transaction_id"]
     # check info supplied
     if user is None:
         raise TypeError("user parameter not supplied")
@@ -107,21 +107,25 @@ def wait_completed(user=None, group=None, transaction_id=None, response=None):
     while not finished and n_loops < MAX_LOOPS:
         # give it some room to breathe
         time.sleep(1)
-        n_loops+=1
+        n_loops += 1
         stat_response = nlds_client.monitor_transactions(
             user=user, group=group, transaction_id=transaction_id
         )
-        # stat_response is a dictionary of {details:, data:,}  
+        # stat_response is a dictionary of {details:, data:,}
         # The transaction is [data][records][0]
         data = stat_response["data"]["records"]
         if len(data) > 0:
             transaction = stat_response["data"]["records"][0]
             state, _ = nlds_client.get_transaction_state(transaction)
 
-        # completion states are COMPLETE, COMPLETE_WITH_ERRORS, 
+        # completion states are COMPLETE, COMPLETE_WITH_ERRORS,
         # COMPLETE_WITH_WARNINGS, FAILED
-        if (state in ["COMPLETE", "COMPLETE_WITH_ERRORS",
-            "COMPLETE_WITH_WARNINGS", "FAILED"]):
+        if state in [
+            "COMPLETE",
+            "COMPLETE_WITH_ERRORS",
+            "COMPLETE_WITH_WARNINGS",
+            "FAILED",
+        ]:
             finished = True
     # return the state so we can assert against it
     return state
@@ -129,20 +133,20 @@ def wait_completed(user=None, group=None, transaction_id=None, response=None):
 
 def count_files(response):
     n_files = 0
-    for hkey in response['data']['holdings']:
-        h = response['data']['holdings'][hkey]
-        for tkey in h['transactions']:
-            t = h['transactions'][tkey]
-            for f in t['filelist']:
-                n_files+=1
+    for hkey in response["data"]["holdings"]:
+        h = response["data"]["holdings"][hkey]
+        for tkey in h["transactions"]:
+            t = h["transactions"][tkey]
+            for f in t["filelist"]:
+                n_files += 1
     return n_files
 
 
 def tag_in_holding(response, tag_test):
     result = False
-    for h in response['data']['holdings']:
-        tags = h['tags']
-        t = all(tags.get(key, None) == val for key,val in tag_test.items())
+    for h in response["data"]["holdings"]:
+        tags = h["tags"]
+        t = all(tags.get(key, None) == val for key, val in tag_test.items())
         if result == False:
             result = t
         else:
@@ -152,9 +156,9 @@ def tag_in_holding(response, tag_test):
 
 
 def generate_random(size):
-    R = ''.join(random.choice(string.ascii_lowercase) for i in range(0, size))
+    R = "".join(random.choice(string.ascii_lowercase) for i in range(0, size))
     return R
-    
+
 
 def delete_catalog():
     # called at the end of catalog_fixture_put and catalog_fixture_get
@@ -162,7 +166,7 @@ def delete_catalog():
     # delete SQLLite database if it exists to start next time with clean db
     db_engine = consumer.load_config_value(consumer._DB_ENGINE)
     db_options = consumer.load_config_value(consumer._DB_OPTIONS)
-    db_name = "." + db_options['db_name']
+    db_name = db_options["db_name"]
     if (db_engine == "sqlite") and (os.path.exists(db_name)):
         os.unlink(db_name)
 
@@ -172,7 +176,7 @@ def delete_monitor():
     consumer = MonitorConsumer()
     db_engine = consumer.load_config_value(consumer._DB_ENGINE)
     db_options = consumer.load_config_value(consumer._DB_OPTIONS)
-    db_name = "." + db_options['db_name']
+    db_name = db_options["db_name"]
     if (db_engine == "sqlite") and (os.path.exists(db_name)):
         os.unlink(db_name)
 
@@ -183,37 +187,34 @@ class test_data:
         self.ur = ur
         self.buckets = []
 
-
     def get_tenancy(self):
         # get the tenancy from the server config
         path = os.path.expanduser("/etc/nlds/server_config")
-        fh = open(path, 'r')
+        fh = open(path, "r")
         json_config = json.load(fh)
         fh.close()
         tenancy = json_config["transfer_put_q"]["tenancy"]
         return tenancy
 
-
     def get_object_store_keys(self):
         # get the accessKey and secretKey for the object storage from the
         # NLDS config
         path = os.path.expanduser("~/.nlds-config")
-        fh = open(path, 'r')
+        fh = open(path, "r")
         json_config = json.load(fh)
         fh.close()
         access_key = json_config["object_storage"]["access_key"]
         secret_key = json_config["object_storage"]["secret_key"]
         return access_key, secret_key
 
-
     def del_data(self):
         # Delete the (local) data created for the test
         # delete the readable files (user can read)
-        for i in range(1, self.nr+1):
+        for i in range(1, self.nr + 1):
             path = get_readable_path(i)
             path.unlink()
         # delete the unreadable files (user does not have permission to read)
-        for i in range(1, self.ur+1):
+        for i in range(1, self.ur + 1):
             # change the file permissions first
             path = get_unreadable_path(i)
             path.chmod(0o777)
@@ -224,16 +225,12 @@ class test_data:
         if datadir.exists():
             datadir.rmdir()
 
-
     def del_buckets(self):
         # Remove the buckets that were uploaded to the object store
         tenancy = self.get_tenancy()
         accessKey, secretKey = self.get_object_store_keys()
         client = minio.Minio(
-            tenancy, 
-            access_key=accessKey,
-            secret_key=secretKey,
-            secure=False
+            tenancy, access_key=accessKey, secret_key=secretKey, secure=False
         )
         for b in self.buckets:
             # to remove a bucket:
@@ -248,7 +245,6 @@ class test_data:
 
                 client.remove_bucket(b)
 
-
     def make_data(self):
         # check the data directoryand target  exists
         datadir = get_data_dir()
@@ -259,21 +255,20 @@ class test_data:
             datadir.chmod(0o773)
 
         # create the readable files (user can read)
-        for i in range(1, self.nr+1):
+        for i in range(1, self.nr + 1):
             path = get_readable_path(i)
             with path.open("w") as fh:
                 # write 128K of random into the file
-                fh.write(generate_random(128*1024))
+                fh.write(generate_random(128 * 1024))
 
         # create the unreadable files (user does not have permission to read)
-        for i in range(1, self.ur+1):
+        for i in range(1, self.ur + 1):
             path = get_unreadable_path(i)
             with path.open("w") as fh:
                 # write 128K of random into the file
-                fh.write(generate_random(128*1024))
+                fh.write(generate_random(128 * 1024))
             # change the file permissions
             path.chmod(0o000)
-
 
     def upload_data(self, sr=1, er=-1, label=None, tag={}):
         # upload data to the object storage so that it is available to the
@@ -283,7 +278,7 @@ class test_data:
         # build a list of the files
         if er == -1:
             er = self.nr
-        for i in range(sr, er+1):
+        for i in range(sr, er + 1):
             path = get_readable_path(i)
             filelist.append(path)
         # upload the filepath
@@ -291,10 +286,10 @@ class test_data:
         state = wait_completed(response=response)
         # get the bucket name and add it to the list so we can delete it at
         # the end
-        transaction_id = response['transaction_id']
+        transaction_id = response["transaction_id"]
         bucket_name = f"nlds.{transaction_id}"
         self.buckets.append(bucket_name)
-        assert(state == "COMPLETE")
+        assert state == "COMPLETE"
 
 
 @pytest.fixture(scope="function")
@@ -305,7 +300,6 @@ def make_target_dirs():
         target.mkdir()
         # change to be writeable by everyone
         target.chmod(0o777)
-
 
     target_uw = get_unwriteable_target_dir()
     if not target_uw.exists():
@@ -334,11 +328,13 @@ def data_fixture_put():
     # This looks complicated but actually works and gets around scoping issues
     print("CREATING DATA")
     data = test_data()
+
     def setup(nr, ur):
         data.nr = nr
         data.ur = ur
         data.make_data()
         return data
+
     yield setup
     data.del_data()
     data.del_buckets()
@@ -351,6 +347,7 @@ def terminate(p):
     while p.poll() == None:
         time.sleep(0.1)
         continue
+
 
 @pytest.fixture(scope="function")
 def catalog_fixture_put(worker_fixture):
@@ -406,9 +403,9 @@ def server_fixture():
     # run the HTTP rest server executable
     # this requires uvicorn to be installed and the `uvicorn` command to be
     # available on the path
-    p = subprocess.Popen([
-        "uvicorn", "nlds.main:nlds", "--reload","--log-level=trace", "--port=8000"
-    ])
+    p = subprocess.Popen(
+        ["uvicorn", "nlds.main:nlds", "--reload", "--log-level=trace", "--port=8000"]
+    )
     yield
     terminate(p)
 
@@ -417,7 +414,7 @@ def server_fixture():
 def put_transfer_fixture(worker_fixture):
     print("LAUNCHING PUT TRANSFER")
     # run the put_transfer executable
-    # this requires NLDS to be pip install and the `put_transfer_q` command to 
+    # this requires NLDS to be pip install and the `put_transfer_q` command to
     # be available in the path
     p = subprocess.Popen(["transfer_put_q"])
     yield
@@ -428,7 +425,7 @@ def put_transfer_fixture(worker_fixture):
 def get_transfer_fixture(worker_fixture):
     print("LAUNCHING GET TRANSFER")
     # run the get_transfer executable
-    # this requires NLDS to be pip install and the `get_transfer_q` command to 
+    # this requires NLDS to be pip install and the `get_transfer_q` command to
     # be available in the path
     p = subprocess.Popen(["transfer_get_q"])
     yield
@@ -439,7 +436,7 @@ def get_transfer_fixture(worker_fixture):
 def logger_fixture():
     print("LAUNCHING LOGGER")
     # run the logging executable
-    # this requires NLDS to be pip install and the `logging_q` command to 
+    # this requires NLDS to be pip install and the `logging_q` command to
     # be available in the path
     p = subprocess.Popen(["logging_q"])
     yield
@@ -449,17 +446,25 @@ def logger_fixture():
 @pytest.fixture(autouse=True, scope="function")
 def pause_fixture():
     print("SLEEPING")
-    # increased sleeping time due to catalog_q and monitor_q not always 
+    # increased sleeping time due to catalog_q and monitor_q not always
     # completing
     time.sleep(7)
+
 
 # These fixtures (data_fixture_get, catalog_fixture_get and monitor_fixture_get)
 # look very similar to their _put counterparts.  However, they do have different
 # scopes - they are created at the class level, so that the data is available
 # in the NLDS catalog and Object Storage for each get test
 
+
 @pytest.fixture(scope="class")
-def data_fixture_get(catalog_fixture_get, monitor_fixture_get):
+def data_fixture_get(
+    catalog_fixture_get,
+    monitor_fixture_get,
+    index_fixture,
+    put_transfer_fixture,
+    get_transfer_fixture,
+):
     # Simpler version of data_fixture_put, which just makes some test data
     # and uploads it to the NLDS
     print("CREATING DATA")
@@ -468,8 +473,12 @@ def data_fixture_get(catalog_fixture_get, monitor_fixture_get):
     data.ur = 0
     data.make_data()
     data.upload_data(1, 5, label="test_holding_1")
-    data.upload_data(6, 10, label="test_holding_2", tag={"filelist":"6 to 10", "filetype":"txt"})
-    data.upload_data(11, 15, label="test_holding_3", tag={"filelist":"11 to 15", "filetype":"txt"})
+    data.upload_data(
+        6, 10, label="test_holding_2", tag={"filelist": "6 to 10", "filetype": "txt"}
+    )
+    data.upload_data(
+        11, 15, label="test_holding_3", tag={"filelist": "11 to 15", "filetype": "txt"}
+    )
     yield
     data.del_data()
     data.del_buckets()
@@ -537,8 +546,8 @@ def monitor_fixture_3(worker_fixture_3):
     terminate(q)
     terminate(y)
     delete_monitor()
-    
-    
+
+
 @pytest.fixture(scope="class")
 def worker_fixture_3(server_fixture, logger_fixture_3):
     print("LAUNCHING WORKERS (3)")
@@ -552,13 +561,13 @@ def worker_fixture_3(server_fixture, logger_fixture_3):
     terminate(p)
     terminate(q)
     terminate(y)
-    
+
 
 @pytest.fixture(scope="class")
 def logger_fixture_3():
     print("LAUNCHING LOGGER (3)")
     # run the logging executable
-    # this requires NLDS to be pip install and the `logging_q` command to 
+    # this requires NLDS to be pip install and the `logging_q` command to
     # be available in the path
     p = subprocess.Popen(["logging_q"])
     q = subprocess.Popen(["logging_q"])
@@ -567,13 +576,13 @@ def logger_fixture_3():
     terminate(p)
     terminate(q)
     terminate(y)
-    
-    
+
+
 @pytest.fixture(scope="class")
 def put_transfer_fixture_3(worker_fixture_3):
     print("LAUNCHING PUT TRANSFER (3)")
     # run the put_transfer executable
-    # this requires NLDS to be pip install and the `put_transfer_q` command to 
+    # this requires NLDS to be pip install and the `put_transfer_q` command to
     # be available in the path
     p = subprocess.Popen(["transfer_put_q"])
     q = subprocess.Popen(["transfer_put_q"])
@@ -588,7 +597,7 @@ def put_transfer_fixture_3(worker_fixture_3):
 def get_transfer_fixture_3(worker_fixture_3):
     print("LAUNCHING GET TRANSFER (3)")
     # run the get_transfer executable
-    # this requires NLDS to be pip install and the `get_transfer_q` command to 
+    # this requires NLDS to be pip install and the `get_transfer_q` command to
     # be available in the path
     p = subprocess.Popen(["transfer_get_q"])
     q = subprocess.Popen(["transfer_get_q"])
@@ -597,8 +606,8 @@ def get_transfer_fixture_3(worker_fixture_3):
     terminate(p)
     terminate(q)
     terminate(y)
-    
-    
+
+
 @pytest.fixture(scope="class")
 def catalog_fixture_get_3(worker_fixture_3):
     # run the catalog executable
@@ -613,8 +622,8 @@ def catalog_fixture_get_3(worker_fixture_3):
     terminate(q)
     terminate(y)
     delete_catalog()
-    
-    
+
+
 @pytest.fixture(scope="class")
 def index_fixture_3(worker_fixture_3):
     print("LAUNCHING INDEXER (3)")
@@ -624,36 +633,6 @@ def index_fixture_3(worker_fixture_3):
     p = subprocess.Popen(["index_q"])
     q = subprocess.Popen(["index_q"])
     y = subprocess.Popen(["index_q"])
-    yield
-    terminate(p)
-    terminate(q)
-    terminate(y)
-    
-    
-@pytest.fixture(scope="class")
-def archive_get_fixture_3(worker_fixture_3):
-    print("LAUNCHING ARCHIVE GET (3)")
-    # run the archive_get executable
-    # this requires NLDS to be pip install and the `archive_get_q` command to be
-    # available in the path
-    p = subprocess.Popen(["archive_get_q"])
-    q = subprocess.Popen(["archive_get_q"])
-    y = subprocess.Popen(["archive_get_q"])
-    yield
-    terminate(p)
-    terminate(q)
-    terminate(y)
-    
-    
-@pytest.fixture(scope="class")
-def archive_put_fixture_3(worker_fixture_3):
-    print("LAUNCHING ARCHIVE PUT (3)")
-    # run the archive_put executable
-    # this requires NLDS to be pip install and the `archive_put_q` command to be
-    # available in the path
-    p = subprocess.Popen(["archive_put_q"])
-    q = subprocess.Popen(["archive_put_q"])
-    y = subprocess.Popen(["archive_put_q"])
     yield
     terminate(p)
     terminate(q)
