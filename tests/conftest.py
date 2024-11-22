@@ -363,7 +363,7 @@ def catalog_fixture_put(worker_fixture):
 
 
 @pytest.fixture(scope="class")
-def monitor_fixture(worker_fixture):
+def monitor_fixture_put(worker_fixture):
     # run the monitor executable
     # this requires NLDS to be pip install and the `monitor_q` command to be
     # available

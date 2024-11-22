@@ -38,7 +38,7 @@ def put_filelist(data, filepath, **kwargs):
 )
 class TestPut:
 
-    def test_put_1(self, data_fixture_put, catalog_fixture_put, monitor_fixture):
+    def test_put_1(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to NLDS, without any metadata"""
         # create 1 readable file
         data = data_fixture_put(1, 0)
@@ -53,7 +53,7 @@ class TestPut:
         state, _ = put_filelist(data, [filepath], job_label="test_put_2")
         assert state == "FAILED"
 
-    def test_put_3(self, data_fixture_put, catalog_fixture_put, monitor_fixture):
+    def test_put_3(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a non existing file to NLDS, without any metadata"""
         data = data_fixture_put(0, 1)
         filepath = "blah"
@@ -92,7 +92,7 @@ class TestPut:
         n_files = count_files(response)
         assert n_files == 2
 
-    def test_put_6(self, data_fixture_put, catalog_fixture_put, monitor_fixture):
+    def test_put_6(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to NLDS, where the file already exists
         in a holding with a label that already exists"""
         data = data_fixture_put(1, 0)
@@ -285,7 +285,7 @@ class TestPut:
         n_files = count_files(response)
         assert n_files == 1
 
-    def test_put_16(self, data_fixture_put, catalog_fixture_put, monitor_fixture):
+    def test_put_16(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to the NLDS with a tag that does not
         exist in another holding."""
         data = data_fixture_put(1, 0)
@@ -327,7 +327,7 @@ class TestPut:
         tag_test = tag_in_holding(response, tag)
         assert tag_test
 
-    def test_put_18(self, data_fixture_put, catalog_fixture_put, monitor_fixture):
+    def test_put_18(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to a holding that already exists but
         with a new tag that doesn't already exist for the holding."""
         data = data_fixture_put(2, 0)
@@ -354,7 +354,7 @@ class TestPut:
         tag_test = tag_in_holding(response, tag)
         assert tag_test
 
-    def test_put_19(self, data_fixture_put, catalog_fixture_put, monitor_fixture):
+    def test_put_19(self, data_fixture_put, catalog_fixture_put, monitor_fixture_put):
         """Test putting a readable file to a holding that already exists and
         with a tag that already exists for the holding."""
         data = data_fixture_put(2, 0)
